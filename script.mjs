@@ -1,5 +1,5 @@
-import { Cell } from '/modules/cell.mjs';
-import { Graph } from '/modules/graph.mjs';
+import { Cell } from './modules/cell.mjs';
+import { Graph } from './modules/graph.mjs';
 const cols = 48;
 const rows = 27;
 let mouseIsPressed = false;
@@ -297,17 +297,21 @@ function createGraphStructure() {
 
 function visualizePath(aPath) {
     return new Promise(resolve => {
-        if (aPath.length != 0) {
-            let firstElem = aPath.shift();
-            if (!grid[firstElem[0]][firstElem[1]].isSrc && !grid[firstElem[0]][firstElem[1]].isDest) {
-                document.getElementById(`(${firstElem[0]},${firstElem[1]})`).style.backgroundColor = pathColor;
-                // document.getElementById(`(${each[0]},${each[1]})`).style.borderColor = pathColor;
-                document.getElementById(`(${firstElem[0]},${firstElem[1]})`).style.transitionDuration = "250ms";
+        try {
+            if (aPath.length != 0) {
+                let firstElem = aPath.shift();
+                if (!grid[firstElem[0]][firstElem[1]].isSrc && !grid[firstElem[0]][firstElem[1]].isDest) {
+                    document.getElementById(`(${firstElem[0]},${firstElem[1]})`).style.backgroundColor = pathColor;
+                    // document.getElementById(`(${each[0]},${each[1]})`).style.borderColor = pathColor;
+                    document.getElementById(`(${firstElem[0]},${firstElem[1]})`).style.transitionDuration = "250ms";
+                }
+                setTimeout(function() {
+                    resolve(visualizePath(aPath));
+                }, 50);
+            } else {
+                resolve();
             }
-            setTimeout(function() {
-                resolve(visualizePath(aPath));
-            }, 50);
-        } else {
+        } catch (e) {
             resolve();
         }
     });
