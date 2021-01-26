@@ -1,0 +1,104 @@
+html {
+    min-width: 1092px;
+}
+
+body {
+    height: 100vh;
+    margin: 0;
+    display: flex;
+    flex-direction: row;
+}
+
+#main {
+    padding: 0% 2%;
+    width: 85%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+.each-row {
+    width: 100%;
+    margin: 0%;
+    display: flex;
+    flex-direction: row;
+    flex-wrap: nowrap;
+}
+
+.cell {
+    border-style: solid;
+    border-bottom-width: 1px;
+    border-left-width: 1px;
+    border-top-width: 0px;
+    border-right-width: 0px;
+    border-color: #aaa;
+    user-select: none;
+}
+
+#side-bar {
+    background-color: #fff6e7;
+    padding: 2%;
+    width: 15%;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+
+#upper-side {
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    justify-content: start;
+}
+
+#lower-side {
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    justify-content: end;
+}
+
+.btn {
+    height: fit-content;
+    border: none;
+    font-size: 1.2em;
+    padding: 10px 0px;
+    margin: 15px 0px;
+    border-radius: 8px;
+    transition-duration: 250ms;
+}
+
+.btn:focus {
+    outline: 0;
+}
+
+#clear-board-btn,
+#hide-result-btn {
+    color: #fff;
+    background-color: #afafaf;
+}
+
+#clear-board-btn:hover,
+#hide-result-btn:hover {
+    background-color: #a5a5a5;
+}
+
+#clear-board-btn:active,
+#hide-result-btn:active {
+    background-color: #9b9b9b;
+}
+
+#run-btn {
+    color: #fff;
+    background-color: #0F9D58;
+}
+
+#run-btn:hover {
+    background-color: #008843;
+}
+
+#run-btn:active {
+    background-color: #007139;
+}
