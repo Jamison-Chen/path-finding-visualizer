@@ -12,8 +12,8 @@ const borderColor = "#AAA";
 let allNodes;
 let allEdgesAndCosts;
 let map;
-let src = [8, 9];
-let dest = [8, 22];
+let src = [13, 16];
+let dest = [13, 32];
 // let lastSrc;
 // let lastDest;
 let currentPath;
@@ -39,10 +39,14 @@ function dijkstra(src, dest, unsolved) {
                 // setTimeout(() => {
                 document.getElementById(`(${w[0]},${w[1]})`).style.backgroundColor = exploredColor;
                 // }, 800)
+            } else {
+                if (grid[w[0]][w[1]].isDest) {
+                    resolve({ shortestD: currentDistance, shortestPath: currentPath });
+                    return; //This return is used for break the recursive loop.
+                }
             }
         } else {
             resolve({ shortestD: currentDistance, shortestPath: currentPath });
-            return;
         }
         for (let v in map.graph[w]) {
             if (unsolved.some(x => x == v)) {
@@ -60,7 +64,6 @@ function dijkstra(src, dest, unsolved) {
             setTimeout(function() {
                 resolve(dijkstra(src, dest, unsolved));
             }, 0);
-
         } else {
             resolve({ shortestD: currentDistance, shortestPath: currentPath });
         }
