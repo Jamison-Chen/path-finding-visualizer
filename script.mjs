@@ -1,6 +1,6 @@
 import { Cell } from './modules/cell.mjs';
 import { Graph } from './modules/graph.mjs';
-const cols = 48;
+const cols = 47;
 const rows = 27;
 let mouseIsPressed = false;
 let isDraggingSrc = false;
@@ -161,8 +161,8 @@ function dijkstra2(src, dest = null) {
     return { shortestD: currentDistance, shortestPath: currentPath };
 }
 
-function arrary2graphInfo(anArray) {
-    const arrFiltered = anArray.filter(el => {
+function arrary2graphInfo(aGrid) {
+    const arrFiltered = aGrid.filter(el => {
         return el != null && el != '';
     });
     let h = arrFiltered.length;
@@ -171,16 +171,16 @@ function arrary2graphInfo(anArray) {
     let e = [];
     for (let i = 0; i < h; i++) {
         for (let j = 0; j < w; j++) {
-            if (!anArray[i][j].isWall) {
+            if (!aGrid[i][j].isWall) {
                 n.push([i, j]);
-                if (j + 1 < w && !anArray[i][j + 1].isWall) {
+                if (j + 1 < w && !aGrid[i][j + 1].isWall) {
                     e.push({
                         n1: [i, j],
                         n2: [i, j + 1],
                         costs: 1
                     });
                 }
-                if (i + 1 < h && !anArray[i + 1][j].isWall) {
+                if (i + 1 < h && !aGrid[i + 1][j].isWall) {
                     e.push({
                         n1: [i, j],
                         n2: [i + 1, j],
@@ -326,6 +326,7 @@ function addAllEventListener() {
     document.getElementById("hide-result-btn").onclick = hideResult;
     document.getElementById("hide-result-btn").innerHTML = "Hide Result";
     document.getElementById("run-btn").onclick = startPathFinding;
+    document.getElementById("maze-btn").onclick = createMaze;
     let cells = document.getElementsByClassName("cell");
     for (let each = 0; each < cells.length; each++) {
         try {
@@ -342,6 +343,7 @@ function removeAllEventListener() {
     document.getElementById("clear-board-btn").onclick = null;
     document.getElementById("run-btn").onclick = null;
     document.getElementById("hide-result-btn").onclick = null;
+    document.getElementById("maze-btn").onclick = null;
     let cells = document.getElementsByClassName("cell");
     for (let each = 0; each < cells.length; each++) {
         try {
@@ -406,6 +408,89 @@ function initSrcAndDest() {
     grid[dest[0]][dest[1]].setDest(document.getElementById(`(${dest[0]},${dest[1]})`));
     // lastSrc = document.getElementById(`(${src[0]},${src[1]})`);
     // lastDest = document.getElementById(`(${dest[0]},${dest[1]})`);
+}
+
+function createMaze() {
+    clearBoard();
+    initMazeWall();
+    pruneMazeWall(wilsonMazeMap().graph);
+}
+
+function wilsonMazeMap() {
+    let mazeGrid = [];
+    for (let i = 0; i < ((rows + 1) * 0.5); i++) {
+        mazeGrid.push([]);
+        for (let j = 0; j < ((cols + 1) * 0.5); j++) {
+            mazeGrid[i][j] = [i, j];
+        }
+    }
+    const mazeGraphInfo = arrary2graphInfo(mazeGrid);
+    let mazeNodes = mazeGraphInfo.nodes;
+    const mazeEdgesAndCosts = mazeGraphInfo.edgesAndCosts;
+    let mazeMap = new Graph(mazeNodes, mazeEdgesAndCosts);
+    let path;
+    let UST = [];
+    UST.push(mazeNodes.shift());
+    while (mazeNodes.length != 0) {
+        let currentNode = mazeNodes.shift();
+        let tempNode = [currentNode[0], currentNode[1]];
+        path = [currentNode];
+        // Random Walk
+        while (!UST.some(x => (x[0] == tempNode[0]) && (x[1] == tempNode[1]))) {
+            let keys = Object.keys(mazeMap.graph[tempNode]);
+            let aNeighborNode = keys[keys.length * Math.random() << 0];
+            aNeighborNode = [parseInt(aNeighborNode.split(",")[0].split("\"")[0]), parseInt(aNeighborNode.split(",")[1].split("\"")[0])];
+            path.push(aNeighborNode);
+            tempNode = aNeighborNode;
+        }
+        // Remove the looped parts of the path
+        for (let i = 0; i < path.length; i++) {
+            for (let j = path.length - 1; j > i; j--) {
+                if ((path[j][0] == path[i][0]) && (path[j][1] == path[i][1])) {
+                    path.splice(i + 1, j - i);
+                    break;
+                }
+            }
+        }
+        for (let each in path) {
+            mazeNodes = mazeNodes.filter(x => (x[0] != path[each][0]) || (x[1] != path[each][1]));
+            if (each != path.length - 1) {
+                mazeMap.graph[path[each]][path[parseInt(each) + 1]] = 0;
+                mazeMap.graph[path[parseInt(each) + 1]][path[each]] = 0;
+                UST.push(path[each]);
+            }
+        }
+    }
+    return mazeMap;
+}
+
+function initMazeWall() {
+    for (let i = 0; i < rows; i++) {
+        for (let j = 0; j < cols; j++) {
+            if (j % 2 != 0) {
+                grid[i][j].setWallIfOk(document.getElementById(`(${i},${j})`));
+            } else {
+                if (i % 2 != 0) {
+                    grid[i][j].setWallIfOk(document.getElementById(`(${i},${j})`));
+                }
+            }
+        }
+    }
+}
+
+function pruneMazeWall(aMazeMap) {
+    for (let i in aMazeMap) {
+        for (let j in aMazeMap[i]) {
+            if (aMazeMap[i][j] == 0) {
+                let iPos = [parseInt(i.split(",")[0].split("\"")[0]), parseInt(i.split(",")[1].split("\"")[0])];
+                let jPos = [parseInt(j.split(",")[0].split("\"")[0]), parseInt(j.split(",")[1].split("\"")[0])];
+                let iPlusJ = [iPos[0] + jPos[0], iPos[1] + jPos[1]];
+                if (!grid[iPlusJ[0]][iPlusJ[1]].isDest && !grid[iPlusJ[0]][iPlusJ[1]].isSrc) {
+                    grid[iPlusJ[0]][iPlusJ[1]].setBlank(document.getElementById(`(${iPlusJ[0]},${iPlusJ[1]})`));
+                }
+            }
+        }
+    }
 }
 
 setup();

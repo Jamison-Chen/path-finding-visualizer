@@ -102,3 +102,16 @@ body {
 #run-btn:active {
     background-color: #007139;
 }
+
+#maze-btn {
+    color: #fff;
+    background-color: #444;
+}
+
+#maze-btn:hover {
+    background-color: #222;
+}
+
+#maze-btn:active {
+    background-color: #000;
+}
