@@ -1,5 +1,9 @@
-import { Cell } from './modules/cell.mjs';
-import { Graph } from './modules/graph.mjs';
+import {
+    Cell
+} from './modules/cell.mjs';
+import {
+    Graph
+} from './modules/graph.mjs';
 const cols = 47;
 const rows = 27;
 let mouseIsPressed = false;
@@ -14,8 +18,6 @@ let allEdgesAndCosts;
 let map;
 let src = [13, 16];
 let dest = [13, 32];
-// let lastSrc;
-// let lastDest;
 let currentPath;
 let currentDistance;
 
@@ -41,12 +43,18 @@ function dijkstra(src, dest, unsolved) {
                 // }, 800)
             } else {
                 if (grid[w[0]][w[1]].isDest) {
-                    resolve({ shortestD: currentDistance, shortestPath: currentPath });
+                    resolve({
+                        shortestD: currentDistance,
+                        shortestPath: currentPath
+                    });
                     return; //This return is used for break the recursive loop.
                 }
             }
         } else {
-            resolve({ shortestD: currentDistance, shortestPath: currentPath });
+            resolve({
+                shortestD: currentDistance,
+                shortestPath: currentPath
+            });
         }
         for (let v in map.graph[w]) {
             if (unsolved.some(x => x == v)) {
@@ -65,7 +73,10 @@ function dijkstra(src, dest, unsolved) {
                 resolve(dijkstra(src, dest, unsolved));
             }, 0);
         } else {
-            resolve({ shortestD: currentDistance, shortestPath: currentPath });
+            resolve({
+                shortestD: currentDistance,
+                shortestPath: currentPath
+            });
         }
     });
 }
@@ -152,13 +163,22 @@ function dijkstra2(src, dest = null) {
     // })();
     if (dest != null) {
         try {
-            return { shortestD: currentDistance[dest], shortestPath: currentPath[dest] };
+            return {
+                shortestD: currentDistance[dest],
+                shortestPath: currentPath[dest]
+            };
         } catch (e) {
             console.log("Unreachable Destination");
-            return { shortestD: Infinity, shortestPath: [src] };
+            return {
+                shortestD: Infinity,
+                shortestPath: [src]
+            };
         }
     }
-    return { shortestD: currentDistance, shortestPath: currentPath };
+    return {
+        shortestD: currentDistance,
+        shortestPath: currentPath
+    };
 }
 
 function arrary2graphInfo(aGrid) {
@@ -190,7 +210,10 @@ function arrary2graphInfo(aGrid) {
             }
         }
     }
-    return { nodes: n, edgesAndCosts: e };
+    return {
+        nodes: n,
+        edgesAndCosts: e
+    };
 }
 
 function setup() {
@@ -286,7 +309,6 @@ async function startPathFinding() {
     createGraphStructure();
     // let dijResult = dijkstra2([6, 1], [2, 2]);                    //Iterative Approach
     let dijResult = await dijkstra(src, dest, dijkstraPresetting()); //Recursive Approach
-    // let dijDistance = dijResult.shortestD;
     await visualizePath(dijResult.shortestPath[dest]);
     addAllEventListener();
 }
@@ -380,14 +402,12 @@ function mouseEnter(anEvevt) {
                 grid[i][j].storeState();
                 grid[i][j].setSrc(anEvevt.target);
                 src = [i, j];
-                // lastSrc = anEvevt.target;
             } else if (isDraggingDest && !grid[i][j].isSrc) {
                 // last cell visited is grid[dest[0]][dest[1]]
                 grid[dest[0]][dest[1]].backToStoredState(dest[0], dest[1], document.getElementById(`(${dest[0]},${dest[1]})`));
                 grid[i][j].storeState();
                 grid[i][j].setDest(anEvevt.target);
                 dest = [i, j];
-                // lastDest = anEvevt.target;
             }
         }
     }
@@ -395,19 +415,13 @@ function mouseEnter(anEvevt) {
 
 function mouseUp() {
     mouseIsPressed = false;
-    if (isDraggingDest) {
-        isDraggingDest = false;
-    } else if (isDraggingSrc) {
-        isDraggingSrc = false;
-    }
-
+    if (isDraggingDest) isDraggingDest = false;
+    else if (isDraggingSrc) isDraggingSrc = false;
 }
 
 function initSrcAndDest() {
     grid[src[0]][src[1]].setSrc(document.getElementById(`(${src[0]},${src[1]})`));
     grid[dest[0]][dest[1]].setDest(document.getElementById(`(${dest[0]},${dest[1]})`));
-    // lastSrc = document.getElementById(`(${src[0]},${src[1]})`);
-    // lastDest = document.getElementById(`(${dest[0]},${dest[1]})`);
 }
 
 function createMaze() {
@@ -421,7 +435,7 @@ function wilsonMazeMap() {
     for (let i = 0; i < ((rows + 1) * 0.5); i++) {
         mazeGrid.push([]);
         for (let j = 0; j < ((cols + 1) * 0.5); j++) {
-            mazeGrid[i][j] = [i, j];
+            mazeGrid[i].push([i, j]);
         }
     }
     const mazeGraphInfo = arrary2graphInfo(mazeGrid);
