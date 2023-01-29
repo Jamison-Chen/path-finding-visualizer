@@ -7,20 +7,33 @@ class Main {
         Main.initBoard();
         // Add all event listener
         document.addEventListener("mouseup", Main.onMouseUp);
-        Main.CLEAR_BOARD_BUTTON.onclick = Main.initBoard;
-        Main.HIDE_RESULT_BUTTON.onclick = Main.hideResult;
+        Main.NEW_BUTTON_SMALL.onclick = () => {
+            Main.cellSize = "small";
+            Main.initBoard();
+        };
+        Main.NEW_BUTTON_MEDIUM.onclick = () => {
+            Main.cellSize = "medium";
+            Main.initBoard();
+        };
+        Main.NEW_BUTTON_BIG.onclick = () => {
+            Main.cellSize = "big";
+            Main.initBoard();
+        };
         Main.MAZE_BUTTON.onclick = Main.onClickCreateMaze;
-        Main.HIDE_RESULT_BUTTON.innerText = "Hide Result";
         Main.RUN_BUTTON.onclick = Main.onClickRun;
     }
     static initBoard() {
-        Main.HIDE_RESULT_BUTTON.disabled = true;
         Main.PANEL.innerHTML = "";
         if (Main.grid)
             Main.grid.length = 0;
         Main.grid = [];
-        Main.numOfRows = Math.floor((Main.PANEL.clientHeight - 30) / 15);
-        Main.numOfColumns = Math.floor((Main.PANEL.clientWidth - 30) / 15);
+        const d = Main.cellSize === "small"
+            ? 5
+            : Main.cellSize === "medium"
+                ? 10
+                : 15;
+        Main.numOfRows = Math.floor((Main.PANEL.clientHeight - 30) / d);
+        Main.numOfColumns = Math.floor((Main.PANEL.clientWidth - 30) / d);
         let cellSideLength = 100 / Main.numOfColumns;
         for (let i = 0; i < Main.numOfRows; i++) {
             let rowDiv = document.createElement("div");
@@ -44,74 +57,56 @@ class Main {
         Main.initBoard();
         Main.grid = Maze.createMaze(Main.grid);
     }
-    static hideResult() {
-        for (let row of Main.grid) {
-            for (let cell of row) {
-                if (!cell.isSource && !cell.isTarget && !cell.isWall) {
-                    cell.div.classList.add("hide");
-                }
-            }
-        }
-        Main.HIDE_RESULT_BUTTON.onclick = Main.showResult;
-        Main.HIDE_RESULT_BUTTON.innerHTML = "Show Result";
-    }
-    static showResult() {
-        for (let row of Main.grid) {
-            for (let cell of row) {
-                if (!cell.isSource && !cell.isTarget && !cell.isWall) {
-                    cell.div.classList.remove("hide");
-                }
-            }
-        }
-        Main.HIDE_RESULT_BUTTON.onclick = Main.hideResult;
-        Main.HIDE_RESULT_BUTTON.innerHTML = "Hide Result";
-    }
     // Recursive Approach
     static dijkstra(unsolvedCells = Main.prepareForDijkstra()) {
         return new Promise((resolve) => {
             let minUnsolvedDistance = Infinity;
             for (let cell of unsolvedCells) {
-                minUnsolvedDistance = Math.min(minUnsolvedDistance, Main.distanceFromSourceTo[cell.id]);
+                if (cell.id in Main.distanceFromSourceTo) {
+                    minUnsolvedDistance = Math.min(minUnsolvedDistance, Main.distanceFromSourceTo[cell.id]);
+                }
             }
-            let ws = unsolvedCells.filter((cell) => Main.distanceFromSourceTo[cell.id] === minUnsolvedDistance);
-            if (minUnsolvedDistance < Infinity && ws.length > 0) {
-                for (let w of ws) {
-                    unsolvedCells = unsolvedCells.filter((c) => c.id !== w.id);
-                    if (w.isTarget) {
-                        resolve();
-                        return; // Used for breaking the recursion.
-                    }
-                    else {
+            if (minUnsolvedDistance < Infinity) {
+                let cellsToSolve = unsolvedCells.filter((c) => Main.distanceFromSourceTo[c.id] === minUnsolvedDistance);
+                if (cellsToSolve.length > 0) {
+                    unsolvedCells = unsolvedCells.filter((c) => Main.distanceFromSourceTo[c.id] !==
+                        minUnsolvedDistance);
+                    for (let w of cellsToSolve) {
                         w.setExplored();
-                        for (let v of Object.values(Main.graph.graph[w.id].neighbors).map((e) => e.node)) {
-                            if (unsolvedCells.some((cell) => cell.id === v.id)) {
-                                let oldDistance = Main.distanceFromSourceTo[v.id];
-                                Main.distanceFromSourceTo[v.id] = Math.min(oldDistance, minUnsolvedDistance +
+                        if (w.isTarget) {
+                            resolve();
+                            return;
+                        }
+                        else {
+                            for (let v of Object.values(Main.graph.graph[w.id].neighbors).map((e) => e.node)) {
+                                const oldDistance = v.id in Main.distanceFromSourceTo
+                                    ? Main.distanceFromSourceTo[v.id]
+                                    : Infinity;
+                                const newDistance = Math.min(oldDistance, minUnsolvedDistance +
                                     Main.graph.getCost(w, v));
-                                if (Main.distanceFromSourceTo[v.id] !==
-                                    oldDistance) {
-                                    Main.pathFromSourceTo[v.id] = [
-                                        ...Main.pathFromSourceTo[w.id],
-                                        v,
-                                    ];
+                                if (newDistance !== Infinity) {
+                                    if (newDistance < oldDistance) {
+                                        Main.distanceFromSourceTo[v.id] =
+                                            newDistance;
+                                        Main.pathFromSourceTo[v.id] = [
+                                            ...(Main.pathFromSourceTo[w.id] ||
+                                                []),
+                                            v,
+                                        ];
+                                    }
                                 }
                             }
                         }
                     }
-                }
-                if (unsolvedCells.length > 0) {
-                    setTimeout(() => resolve(Main.dijkstra(unsolvedCells)));
-                }
-                else {
-                    resolve();
-                    return; // Used for breaking the recursion.
+                    if (unsolvedCells.length > 0) {
+                        setTimeout(() => resolve(Main.dijkstra(unsolvedCells)));
+                        return;
+                    }
                 }
             }
-            else {
-                // Target is not found after exploring all reachable area.
-                resolve();
-                return; // Used for breaking the recursion.
-            }
+            // Target is not found after exploring all reachable area.
+            resolve();
+            return;
         });
     }
     static prepareForDijkstra() {
@@ -119,8 +114,11 @@ class Main {
         Main.pathFromSourceTo = { [Main.source.id]: [Main.source] };
         Main.distanceFromSourceTo = { [Main.source.id]: 0 };
         unsolvedCells.forEach((cell) => {
-            Main.distanceFromSourceTo[cell.id] = Main.graph.getCost(cell, this.source);
-            Main.pathFromSourceTo[cell.id] = [Main.source, cell];
+            const distance = Main.graph.getCost(cell, this.source);
+            if (distance !== Infinity) {
+                Main.distanceFromSourceTo[cell.id] = distance;
+                Main.pathFromSourceTo[cell.id] = [Main.source, cell];
+            }
         });
         return unsolvedCells;
     }
@@ -160,10 +158,12 @@ class Main {
 }
 _a = Main;
 Main.PANEL = document.getElementById("panel");
-Main.CLEAR_BOARD_BUTTON = document.getElementById("clear-board-btn");
-Main.HIDE_RESULT_BUTTON = document.getElementById("hide-result-btn");
+Main.NEW_BUTTON_SMALL = document.getElementById("new-btn-small");
+Main.NEW_BUTTON_MEDIUM = document.getElementById("new-btn-medium");
+Main.NEW_BUTTON_BIG = document.getElementById("new-btn-big");
 Main.RUN_BUTTON = document.getElementById("run-btn");
 Main.MAZE_BUTTON = document.getElementById("maze-btn");
+Main.cellSize = "big";
 Main.isMousePressed = false;
 Main.isMovingSource = false;
 Main.isMovingTarget = false;
@@ -190,9 +190,9 @@ Main.onMouseEnter = (cell) => {
                     Main.target.backToStoredState();
                     cell.storeState();
                     Main.target = cell.setTarget();
+                    Main.clearPath();
                     if (Main.pathFromSourceTo &&
-                        Main.pathFromSourceTo[Main.target.id]) {
-                        Main.clearPath();
+                        Main.target.id in Main.pathFromSourceTo) {
                         Main.showPath(Main.pathFromSourceTo[Main.target.id], true);
                     }
                 }
@@ -220,9 +220,10 @@ Main.onClickRun = async () => {
     }
     // Remove all event listener
     document.removeEventListener("mouseup", Main.onMouseUp);
-    Main.CLEAR_BOARD_BUTTON.disabled = true;
+    Main.NEW_BUTTON_SMALL.disabled = true;
+    Main.NEW_BUTTON_MEDIUM.disabled = true;
+    Main.NEW_BUTTON_BIG.disabled = true;
     Main.RUN_BUTTON.disabled = true;
-    Main.HIDE_RESULT_BUTTON.disabled = true;
     Main.MAZE_BUTTON.disabled = true;
     for (let row of Main.grid) {
         for (let cell of row) {
@@ -235,12 +236,15 @@ Main.onClickRun = async () => {
     // let dijkstraResult = dijkstra2([6, 1], [2, 2]);
     //Recursive Approach
     await Main.dijkstra();
-    await Main.showPath(Main.pathFromSourceTo[Main.target.id]);
+    if (Main.target.id in Main.pathFromSourceTo) {
+        await Main.showPath(Main.pathFromSourceTo[Main.target.id]);
+    }
     // Reset all event listener
     document.addEventListener("mouseup", Main.onMouseUp);
-    Main.CLEAR_BOARD_BUTTON.disabled = false;
+    Main.NEW_BUTTON_SMALL.disabled = false;
+    Main.NEW_BUTTON_MEDIUM.disabled = false;
+    Main.NEW_BUTTON_BIG.disabled = false;
     Main.RUN_BUTTON.disabled = false;
-    Main.HIDE_RESULT_BUTTON.disabled = false;
     Main.MAZE_BUTTON.disabled = false;
     for (let row of Main.grid) {
         for (let cell of row) {

@@ -136,17 +136,16 @@ body {
         color: $light-gray !important;
         background-color: $noisy-white !important;
     }
-    &#clear-board-btn,
-    &#hide-result-btn {
+    &#new-btn-small,
+    &#new-btn-medium,
+    &#new-btn-big {
         background-color: $noisy-white;
         color: $deep-gray;
     }
-
     &#run-btn {
         background-color: $green;
         color: $white;
     }
-
     &#maze-btn {
         background-color: $deep-gray;
         color: $white;

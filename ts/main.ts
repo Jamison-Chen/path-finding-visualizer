@@ -4,10 +4,13 @@ import Maze from "./maze.js";
 
 class Main {
     private static PANEL: HTMLElement = document.getElementById("panel")!;
-    private static CLEAR_BOARD_BUTTON: HTMLButtonElement =
-        document.getElementById("clear-board-btn") as HTMLButtonElement;
-    private static HIDE_RESULT_BUTTON: HTMLButtonElement =
-        document.getElementById("hide-result-btn") as HTMLButtonElement;
+    private static NEW_BUTTON_SMALL: HTMLButtonElement =
+        document.getElementById("new-btn-small") as HTMLButtonElement;
+    private static NEW_BUTTON_MEDIUM: HTMLButtonElement =
+        document.getElementById("new-btn-medium") as HTMLButtonElement;
+    private static NEW_BUTTON_BIG: HTMLButtonElement = document.getElementById(
+        "new-btn-big"
+    ) as HTMLButtonElement;
     private static RUN_BUTTON: HTMLButtonElement = document.getElementById(
         "run-btn"
     ) as HTMLButtonElement;
@@ -15,6 +18,7 @@ class Main {
         "maze-btn"
     ) as HTMLButtonElement;
 
+    private static cellSize: "small" | "medium" | "big" = "big";
     private static numOfColumns: number;
     private static numOfRows: number;
     private static isMousePressed: boolean = false;
@@ -32,22 +36,36 @@ class Main {
 
         // Add all event listener
         document.addEventListener("mouseup", Main.onMouseUp);
-        Main.CLEAR_BOARD_BUTTON.onclick = Main.initBoard;
-        Main.HIDE_RESULT_BUTTON.onclick = Main.hideResult;
+        Main.NEW_BUTTON_SMALL.onclick = () => {
+            Main.cellSize = "small";
+            Main.initBoard();
+        };
+        Main.NEW_BUTTON_MEDIUM.onclick = () => {
+            Main.cellSize = "medium";
+            Main.initBoard();
+        };
+        Main.NEW_BUTTON_BIG.onclick = () => {
+            Main.cellSize = "big";
+            Main.initBoard();
+        };
         Main.MAZE_BUTTON.onclick = Main.onClickCreateMaze;
-        Main.HIDE_RESULT_BUTTON.innerText = "Hide Result";
         Main.RUN_BUTTON.onclick = Main.onClickRun;
     }
 
     private static initBoard() {
-        Main.HIDE_RESULT_BUTTON.disabled = true;
-
         Main.PANEL.innerHTML = "";
         if (Main.grid) Main.grid.length = 0;
         Main.grid = [];
 
-        Main.numOfRows = Math.floor((Main.PANEL.clientHeight - 30) / 15);
-        Main.numOfColumns = Math.floor((Main.PANEL.clientWidth - 30) / 15);
+        const d =
+            Main.cellSize === "small"
+                ? 5
+                : Main.cellSize === "medium"
+                ? 10
+                : 15;
+
+        Main.numOfRows = Math.floor((Main.PANEL.clientHeight - 30) / d);
+        Main.numOfColumns = Math.floor((Main.PANEL.clientWidth - 30) / d);
 
         let cellSideLength = 100 / Main.numOfColumns;
         for (let i = 0; i < Main.numOfRows; i++) {
@@ -92,11 +110,11 @@ class Main {
                         Main.target.backToStoredState();
                         cell.storeState();
                         Main.target = cell.setTarget();
+                        Main.clearPath();
                         if (
                             Main.pathFromSourceTo &&
-                            Main.pathFromSourceTo[Main.target.id]
+                            Main.target.id in Main.pathFromSourceTo
                         ) {
-                            Main.clearPath();
                             Main.showPath(
                                 Main.pathFromSourceTo[Main.target.id],
                                 true
@@ -122,30 +140,6 @@ class Main {
         Main.grid = Maze.createMaze(Main.grid);
     }
 
-    private static hideResult() {
-        for (let row of Main.grid) {
-            for (let cell of row) {
-                if (!cell.isSource && !cell.isTarget && !cell.isWall) {
-                    cell.div.classList.add("hide");
-                }
-            }
-        }
-        Main.HIDE_RESULT_BUTTON.onclick = Main.showResult;
-        Main.HIDE_RESULT_BUTTON.innerHTML = "Show Result";
-    }
-
-    private static showResult() {
-        for (let row of Main.grid) {
-            for (let cell of row) {
-                if (!cell.isSource && !cell.isTarget && !cell.isWall) {
-                    cell.div.classList.remove("hide");
-                }
-            }
-        }
-        Main.HIDE_RESULT_BUTTON.onclick = Main.hideResult;
-        Main.HIDE_RESULT_BUTTON.innerHTML = "Hide Result";
-    }
-
     private static onClickRun = async (): Promise<void> => {
         // Clear explore history
         for (let row of Main.grid) {
@@ -156,9 +150,10 @@ class Main {
 
         // Remove all event listener
         document.removeEventListener("mouseup", Main.onMouseUp);
-        Main.CLEAR_BOARD_BUTTON.disabled = true;
+        Main.NEW_BUTTON_SMALL.disabled = true;
+        Main.NEW_BUTTON_MEDIUM.disabled = true;
+        Main.NEW_BUTTON_BIG.disabled = true;
         Main.RUN_BUTTON.disabled = true;
-        Main.HIDE_RESULT_BUTTON.disabled = true;
         Main.MAZE_BUTTON.disabled = true;
         for (let row of Main.grid) {
             for (let cell of row) {
@@ -175,13 +170,16 @@ class Main {
         //Recursive Approach
         await Main.dijkstra();
 
-        await Main.showPath(Main.pathFromSourceTo[Main.target.id]);
+        if (Main.target.id in Main.pathFromSourceTo) {
+            await Main.showPath(Main.pathFromSourceTo[Main.target.id]);
+        }
 
         // Reset all event listener
         document.addEventListener("mouseup", Main.onMouseUp);
-        Main.CLEAR_BOARD_BUTTON.disabled = false;
+        Main.NEW_BUTTON_SMALL.disabled = false;
+        Main.NEW_BUTTON_MEDIUM.disabled = false;
+        Main.NEW_BUTTON_BIG.disabled = false;
         Main.RUN_BUTTON.disabled = false;
-        Main.HIDE_RESULT_BUTTON.disabled = false;
         Main.MAZE_BUTTON.disabled = false;
         for (let row of Main.grid) {
             for (let cell of row) {
@@ -198,62 +196,66 @@ class Main {
         return new Promise((resolve) => {
             let minUnsolvedDistance: number = Infinity;
             for (let cell of unsolvedCells) {
-                minUnsolvedDistance = Math.min(
-                    minUnsolvedDistance,
-                    Main.distanceFromSourceTo[cell.id]
-                );
+                if (cell.id in Main.distanceFromSourceTo) {
+                    minUnsolvedDistance = Math.min(
+                        minUnsolvedDistance,
+                        Main.distanceFromSourceTo[cell.id]
+                    );
+                }
             }
 
-            let ws: Cell[] = unsolvedCells.filter(
-                (cell) =>
-                    Main.distanceFromSourceTo[cell.id] === minUnsolvedDistance
-            );
-
-            if (minUnsolvedDistance < Infinity && ws.length > 0) {
-                for (let w of ws) {
-                    unsolvedCells = unsolvedCells.filter((c) => c.id !== w!.id);
-                    if (w.isTarget) {
-                        resolve();
-                        return; // Used for breaking the recursion.
-                    } else {
+            if (minUnsolvedDistance < Infinity) {
+                let cellsToSolve: Cell[] = unsolvedCells.filter(
+                    (c) =>
+                        Main.distanceFromSourceTo[c.id] === minUnsolvedDistance
+                );
+                if (cellsToSolve.length > 0) {
+                    unsolvedCells = unsolvedCells.filter(
+                        (c) =>
+                            Main.distanceFromSourceTo[c.id] !==
+                            minUnsolvedDistance
+                    );
+                    for (let w of cellsToSolve) {
                         w.setExplored();
-                        for (let v of Object.values(
-                            Main.graph.graph[w.id].neighbors
-                        ).map((e) => e.node)) {
-                            if (
-                                unsolvedCells.some((cell) => cell.id === v.id)
-                            ) {
-                                let oldDistance =
-                                    Main.distanceFromSourceTo[v.id];
-                                Main.distanceFromSourceTo[v.id] = Math.min(
+                        if (w.isTarget) {
+                            resolve();
+                            return;
+                        } else {
+                            for (let v of Object.values(
+                                Main.graph.graph[w.id].neighbors
+                            ).map((e) => e.node)) {
+                                const oldDistance =
+                                    v.id in Main.distanceFromSourceTo
+                                        ? Main.distanceFromSourceTo[v.id]
+                                        : Infinity;
+                                const newDistance = Math.min(
                                     oldDistance,
                                     minUnsolvedDistance +
                                         Main.graph.getCost(w, v)
                                 );
-                                if (
-                                    Main.distanceFromSourceTo[v.id] !==
-                                    oldDistance
-                                ) {
-                                    Main.pathFromSourceTo[v.id] = [
-                                        ...Main.pathFromSourceTo[w.id],
-                                        v,
-                                    ];
+                                if (newDistance !== Infinity) {
+                                    if (newDistance < oldDistance) {
+                                        Main.distanceFromSourceTo[v.id] =
+                                            newDistance;
+                                        Main.pathFromSourceTo[v.id] = [
+                                            ...(Main.pathFromSourceTo[w.id] ||
+                                                []),
+                                            v,
+                                        ];
+                                    }
                                 }
                             }
                         }
                     }
+                    if (unsolvedCells.length > 0) {
+                        setTimeout(() => resolve(Main.dijkstra(unsolvedCells)));
+                        return;
+                    }
                 }
-                if (unsolvedCells.length > 0) {
-                    setTimeout(() => resolve(Main.dijkstra(unsolvedCells)));
-                } else {
-                    resolve();
-                    return; // Used for breaking the recursion.
-                }
-            } else {
-                // Target is not found after exploring all reachable area.
-                resolve();
-                return; // Used for breaking the recursion.
             }
+            // Target is not found after exploring all reachable area.
+            resolve();
+            return;
         });
     }
 
@@ -266,11 +268,11 @@ class Main {
         Main.distanceFromSourceTo = { [Main.source.id]: 0 };
 
         unsolvedCells.forEach((cell) => {
-            Main.distanceFromSourceTo[cell.id] = Main.graph.getCost(
-                cell,
-                this.source
-            );
-            Main.pathFromSourceTo[cell.id] = [Main.source, cell];
+            const distance = Main.graph.getCost(cell, this.source);
+            if (distance !== Infinity) {
+                Main.distanceFromSourceTo[cell.id] = distance;
+                Main.pathFromSourceTo[cell.id] = [Main.source, cell];
+            }
         });
         return unsolvedCells;
     }

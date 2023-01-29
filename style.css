@@ -116,7 +116,7 @@ body > #function-bar > #upper, body > #function-bar > #lower {
   color: #ddd !important;
   background-color: #f5f5f5 !important;
 }
-.btn#clear-board-btn, .btn#hide-result-btn {
+.btn#new-btn-small, .btn#new-btn-medium, .btn#new-btn-big {
   background-color: #f5f5f5;
   color: #444;
 }
