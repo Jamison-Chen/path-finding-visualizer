@@ -35,14 +35,14 @@ class Main {
             : Main.cellSize === "medium"
                 ? 10
                 : 15;
-        Main.numOfRows = Math.floor((Main.PANEL.clientHeight - 30) / d);
-        Main.numOfColumns = Math.floor((Main.PANEL.clientWidth - 30) / d);
-        let cellSideLength = 100 / Main.numOfColumns;
-        for (let i = 0; i < Main.numOfRows; i++) {
+        const numOfRows = Math.floor((Main.PANEL.clientHeight - 30) / d);
+        const numOfColumns = Math.floor((Main.PANEL.clientWidth - 30) / d);
+        let cellSideLength = 100 / numOfColumns;
+        for (let i = 0; i < numOfRows; i++) {
             let rowDiv = document.createElement("div");
             rowDiv.className = "row";
             Main.grid[i] = [];
-            for (let j = 0; j < Main.numOfColumns; j++) {
+            for (let j = 0; j < numOfColumns; j++) {
                 const cell = new Cell(i, j, cellSideLength);
                 rowDiv.appendChild(cell.div);
                 Main.grid[i][j] = cell;
