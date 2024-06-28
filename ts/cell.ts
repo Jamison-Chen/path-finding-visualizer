@@ -36,7 +36,7 @@ export default class Cell {
         return this.div.id;
     }
     public get position(): { row: number; col: number } {
-        let pos = this.div.id.replace(/\(+|\)+/g, "").split(",");
+        const pos = this.div.id.replace(/\(+|\)+/g, "").split(",");
         return { row: parseInt(pos[0]), col: parseInt(pos[1]) };
     }
     public setBlank(): void {
@@ -124,13 +124,10 @@ export default class Cell {
             "wall",
             "path"
         );
-        if (this.storedState.isWall) {
-            this.div.classList.add("wall");
-        } else if (this.storedState.isSource) {
-            this.div.classList.add("source");
-        } else if (this.storedState.isTarget) {
-            this.div.classList.add("target");
-        } else if (this.storedState.isExplored) {
+        if (this.storedState.isWall) this.div.classList.add("wall");
+        else if (this.storedState.isSource) this.div.classList.add("source");
+        else if (this.storedState.isTarget) this.div.classList.add("target");
+        else if (this.storedState.isExplored) {
             this.div.classList.add("explored");
         } else if (this.storedState.isShortestPath) {
             this.div.classList.add("path");

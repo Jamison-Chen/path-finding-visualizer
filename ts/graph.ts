@@ -16,28 +16,20 @@ export default class Graph<T extends { id: string; isWall: boolean }> {
         nodes: T[];
         edgesAndCosts: { n1: T; n2: T; cost: number }[];
     } {
-        let h: number = grid.length;
-        let w: number = grid[0].length;
-        let n: T[] = [];
-        let e: { n1: T; n2: T; cost: number }[] = [];
+        const h: number = grid.length;
+        const w: number = grid[0].length;
+        const n: T[] = [];
+        const e: { n1: T; n2: T; cost: number }[] = [];
 
         for (let i = 0; i < h; i++) {
             for (let j = 0; j < w; j++) {
                 if (!grid[i][j].isWall) {
                     n.push(grid[i][j]);
                     if (j + 1 < w && !grid[i][j + 1].isWall) {
-                        e.push({
-                            n1: grid[i][j],
-                            n2: grid[i][j + 1],
-                            cost: 1,
-                        });
+                        e.push({ n1: grid[i][j], n2: grid[i][j + 1], cost: 1 });
                     }
                     if (i + 1 < h && !grid[i + 1][j].isWall) {
-                        e.push({
-                            n1: grid[i][j],
-                            n2: grid[i + 1][j],
-                            cost: 1,
-                        });
+                        e.push({ n1: grid[i][j], n2: grid[i + 1][j], cost: 1 });
                     }
                 }
             }

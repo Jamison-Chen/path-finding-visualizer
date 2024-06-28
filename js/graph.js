@@ -6,27 +6,19 @@ export default class Graph {
         graphInfo.edgesAndCosts.forEach((each) => this.addEdge(each));
     }
     gridToGraphInfo(grid) {
-        let h = grid.length;
-        let w = grid[0].length;
-        let n = [];
-        let e = [];
+        const h = grid.length;
+        const w = grid[0].length;
+        const n = [];
+        const e = [];
         for (let i = 0; i < h; i++) {
             for (let j = 0; j < w; j++) {
                 if (!grid[i][j].isWall) {
                     n.push(grid[i][j]);
                     if (j + 1 < w && !grid[i][j + 1].isWall) {
-                        e.push({
-                            n1: grid[i][j],
-                            n2: grid[i][j + 1],
-                            cost: 1,
-                        });
+                        e.push({ n1: grid[i][j], n2: grid[i][j + 1], cost: 1 });
                     }
                     if (i + 1 < h && !grid[i + 1][j].isWall) {
-                        e.push({
-                            n1: grid[i][j],
-                            n2: grid[i + 1][j],
-                            cost: 1,
-                        });
+                        e.push({ n1: grid[i][j], n2: grid[i + 1][j], cost: 1 });
                     }
                 }
             }

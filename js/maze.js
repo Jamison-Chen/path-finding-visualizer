@@ -4,18 +4,18 @@ export default class Maze {
         // Initialize wall of maze
         for (let row of grid) {
             for (let cell of row) {
-                if (cell.position.row % 2 !== 0)
+                if (cell.position.row % 2 !== 0 ||
+                    cell.position.col % 2 !== 0) {
                     cell.setWall();
-                else if (cell.position.col % 2 !== 0)
-                    cell.setWall();
+                }
             }
         }
         return Maze.pruneMazeWall(Maze.wilsonMazeGraph(grid), grid);
     }
     static wilsonMazeGraph(grid) {
-        let mazeGrid = [];
+        const mazeGrid = [];
         for (let i = 0; i < (grid.length + 1) / 2; i++) {
-            let row = [];
+            const row = [];
             for (let j = 0; j < (grid[0].length + 1) / 2; j++) {
                 row.push({
                     id: `(${i},${j})`,
@@ -26,11 +26,11 @@ export default class Maze {
             mazeGrid.push(row);
         }
         let mazeNodes = mazeGrid.flat();
-        let mazeGraph = new Graph(mazeGrid);
-        let UST = [mazeNodes.shift()];
+        const mazeGraph = new Graph(mazeGrid);
+        const UST = [mazeNodes.shift()];
         while (mazeNodes.length > 0) {
-            let currentNode = mazeNodes.shift();
-            let path = [currentNode];
+            const currentNode = mazeNodes.shift();
+            const path = [currentNode];
             let tempNode = currentNode;
             // Random Walk
             while (!UST.some((node) => node.id === tempNode.id)) {
@@ -66,7 +66,7 @@ export default class Maze {
         for (let i in mazeGraph.graph) {
             for (let j in mazeGraph.graph[i].neighbors) {
                 if (mazeGraph.graph[i].neighbors[j].cost === 0) {
-                    let iPlusJ = {
+                    const iPlusJ = {
                         row: mazeGraph.graph[i].node.position.row +
                             mazeGraph.graph[i].neighbors[j].node.position.row,
                         col: mazeGraph.graph[i].node.position.col +

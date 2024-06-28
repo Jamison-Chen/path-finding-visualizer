@@ -12,19 +12,22 @@ export default class Maze {
         // Initialize wall of maze
         for (let row of grid) {
             for (let cell of row) {
-                if (cell.position.row % 2 !== 0) cell.setWall();
-                else if (cell.position.col % 2 !== 0) cell.setWall();
+                if (
+                    cell.position.row % 2 !== 0 ||
+                    cell.position.col % 2 !== 0
+                ) {
+                    cell.setWall();
+                }
             }
         }
-
         return Maze.pruneMazeWall(Maze.wilsonMazeGraph(grid), grid);
     }
 
     private static wilsonMazeGraph(grid: any[][]): Graph<MazeNode> {
-        let mazeGrid: MazeNode[][] = [];
+        const mazeGrid: MazeNode[][] = [];
 
         for (let i = 0; i < (grid.length + 1) / 2; i++) {
-            let row: MazeNode[] = [];
+            const row: MazeNode[] = [];
             for (let j = 0; j < (grid[0].length + 1) / 2; j++) {
                 row.push({
                     id: `(${i},${j})`,
@@ -36,11 +39,11 @@ export default class Maze {
         }
 
         let mazeNodes: MazeNode[] = mazeGrid.flat();
-        let mazeGraph = new Graph(mazeGrid);
-        let UST: MazeNode[] = [mazeNodes.shift()!];
+        const mazeGraph = new Graph(mazeGrid);
+        const UST: MazeNode[] = [mazeNodes.shift()!];
         while (mazeNodes.length > 0) {
-            let currentNode: MazeNode = mazeNodes.shift()!;
-            let path: MazeNode[] = [currentNode];
+            const currentNode: MazeNode = mazeNodes.shift()!;
+            const path: MazeNode[] = [currentNode];
             let tempNode: MazeNode = currentNode;
 
             // Random Walk
@@ -90,7 +93,7 @@ export default class Maze {
         for (let i in mazeGraph.graph) {
             for (let j in mazeGraph.graph[i].neighbors) {
                 if (mazeGraph.graph[i].neighbors[j].cost === 0) {
-                    let iPlusJ = {
+                    const iPlusJ = {
                         row:
                             mazeGraph.graph[i].node.position.row +
                             mazeGraph.graph[i].neighbors[j].node.position.row,
@@ -98,7 +101,6 @@ export default class Maze {
                             mazeGraph.graph[i].node.position.col +
                             mazeGraph.graph[i].neighbors[j].node.position.col,
                     };
-
                     if (
                         iPlusJ.row < grid.length &&
                         iPlusJ.col < grid[0].length &&

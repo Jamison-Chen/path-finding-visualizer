@@ -32,7 +32,7 @@ class Main {
     public static main(): void {
         Main.initBoard();
 
-        // Add all event listener
+        // Add all event listeners
         document.addEventListener("mouseup", Main.onMouseUp);
         Main.NEW_BUTTON_SMALL.onclick = () => {
             Main.cellSize = "small";
@@ -68,9 +68,9 @@ class Main {
         const numOfRows = Math.floor((Main.PANEL.clientHeight - 30) / d);
         const numOfColumns = Math.floor((Main.PANEL.clientWidth - 30) / d);
 
-        let cellSideLength = 100 / numOfColumns;
+        const cellSideLength = 100 / numOfColumns;
         for (let i = 0; i < numOfRows; i++) {
-            let rowDiv = document.createElement("div");
+            const rowDiv = document.createElement("div");
             rowDiv.className = "row";
             Main.grid[i] = [];
             for (let j = 0; j < numOfColumns; j++) {
@@ -186,7 +186,7 @@ class Main {
         unsolvedCells: Cell[] = Main.prepareForDijkstra()
     ): Promise<void> {
         return new Promise((resolve) => {
-            let minUnsolvedDistance: number = Math.min(
+            const minUnsolvedDistance: number = Math.min(
                 ...unsolvedCells.map((c) => {
                     return c.id in Main.distanceFromSourceTo
                         ? Main.distanceFromSourceTo[c.id]
@@ -195,7 +195,7 @@ class Main {
             );
 
             if (minUnsolvedDistance < Infinity && !isNaN(minUnsolvedDistance)) {
-                let cellsToSolve: Cell[] = unsolvedCells.filter(
+                const cellsToSolve: Cell[] = unsolvedCells.filter(
                     (c) =>
                         Main.distanceFromSourceTo[c.id] === minUnsolvedDistance
                 );
@@ -245,13 +245,11 @@ class Main {
     }
 
     private static prepareForDijkstra(): Cell[] {
-        let unsolvedCells: Cell[] = [...Main.grid.flat()].filter(
+        const unsolvedCells: Cell[] = [...Main.grid.flat()].filter(
             (cell) => cell.id !== Main.source.id
         );
-
         Main.pathFromSourceTo = { [Main.source.id]: [Main.source] };
         Main.distanceFromSourceTo = { [Main.source.id]: 0 };
-
         unsolvedCells.forEach((cell) => {
             const distance = Main.graph.getCost(cell, this.source);
             if (distance !== Infinity) {
@@ -276,7 +274,7 @@ class Main {
             // Return promise to make the UI stay freezed before showing the whole path.
             return new Promise((resolve) => {
                 if (idx < path.length) {
-                    let cell: Cell = path[idx];
+                    const cell: Cell = path[idx];
                     if (!cell.isSource && !cell.isTarget) {
                         cell.setShortestPath();
                     }
@@ -292,9 +290,7 @@ class Main {
     private static clearPath(): void {
         for (let row of Main.grid) {
             for (let cell of row) {
-                if (cell.isShortestPath) {
-                    if (cell.isExplored) cell.setExplored();
-                }
+                if (cell.isShortestPath && cell.isExplored) cell.setExplored();
             }
         }
     }
