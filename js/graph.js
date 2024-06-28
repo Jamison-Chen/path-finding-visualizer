@@ -39,9 +39,8 @@ export default class Graph {
         };
     }
     getCost(n1, n2) {
-        var _a, _b;
         if (n1.id === n2.id)
             return 0;
-        return ((_b = (_a = this.graph[n1.id]) === null || _a === void 0 ? void 0 : _a.neighbors[n2.id]) === null || _b === void 0 ? void 0 : _b.cost) || Infinity;
+        return this.graph[n1.id]?.neighbors[n2.id]?.cost || Infinity;
     }
 }

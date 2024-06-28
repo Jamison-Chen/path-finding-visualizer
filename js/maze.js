@@ -1,7 +1,6 @@
 import Graph from "./graph.js";
 export default class Maze {
     static createMaze(grid) {
-        // Initialize wall of maze
         for (let row of grid) {
             for (let cell of row) {
                 if (cell.position.row % 2 !== 0 ||
@@ -32,7 +31,6 @@ export default class Maze {
             const currentNode = mazeNodes.shift();
             const path = [currentNode];
             let tempNode = currentNode;
-            // Random Walk
             while (!UST.some((node) => node.id === tempNode.id)) {
                 const randomIdx = (Object.keys(mazeGraph.graph[tempNode.id].neighbors)
                     .length *
@@ -42,7 +40,6 @@ export default class Maze {
                 path.push(randomNeighbor);
                 tempNode = randomNeighbor;
             }
-            // Remove the looped parts of the path
             for (let i = 0; i < path.length; i++) {
                 for (let j = path.length - 1; j > i; j--) {
                     if (path[j].id === path[i].id) {
