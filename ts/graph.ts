@@ -7,7 +7,6 @@ export default class Graph<T extends { id: string; isWall: boolean }> {
     };
     public constructor(grid: T[][]) {
         this.graph = {};
-
         const graphInfo = this.gridToGraphInfo(grid);
         graphInfo.nodes.forEach((node) => this.addNode(node));
         graphInfo.edgesAndCosts.forEach((each) => this.addEdge(each));
@@ -20,7 +19,6 @@ export default class Graph<T extends { id: string; isWall: boolean }> {
         const w: number = grid[0].length;
         const n: T[] = [];
         const e: { n1: T; n2: T; cost: number }[] = [];
-
         for (let i = 0; i < h; i++) {
             for (let j = 0; j < w; j++) {
                 if (!grid[i][j].isWall) {

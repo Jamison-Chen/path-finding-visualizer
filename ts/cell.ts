@@ -26,7 +26,6 @@ export default class Cell {
         this.isTarget = false;
         this.isExplored = false;
         this.isShortestPath = false;
-
         this.div = document.createElement("div");
         this.div.id = `(${rowNum},${colNum})`;
         this.div.className = "cell";
