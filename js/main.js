@@ -1,235 +1,312 @@
-var _a;
+import { Dijkstra } from "./algorithms.js";
 import Cell from "./cell.js";
-import Graph from "./graph.js";
 import Maze from "./maze.js";
+import { throttle } from "./utils.js";
+const cellSizeOptions = ["s", "m", "l"];
+const speedOptions = ["slow", "normal", "fast"];
+const algorithmOptions = [
+    Dijkstra,
+];
+const cleanModeOptions = ["retain-the-wall", "clean-all"];
 class Main {
-    static main() {
-        _a.initBoard();
-        document.addEventListener("mouseup", _a.onMouseUp);
-        _a.NEW_BUTTON_SMALL.onclick = () => {
-            _a.cellSize = "small";
-            _a.initBoard();
+    constructor() {
+        this.domPrevAlgoButton = document.querySelector("body > .control-panel > .mid > .prev");
+        this.domNextAlgoButton = document.querySelector("body > .control-panel > .mid > .next");
+        this.domAlgorithmText = document.querySelector("body > .control-panel > .mid > .algorithm");
+        this.domVisualizeButton = document.querySelector("body > .control-panel > .right > .visualize");
+        this.domCleanButton = document.querySelector("body > .control-panel > .right > .clean");
+        this.domGenMazeButton = document.querySelector("body > .control-panel > .right > .generate-maze");
+        this.domSettingsButton = document.querySelector("body > .control-panel > .right > .settings");
+        this.domCanvas = document.querySelector("body > .canvas");
+        this.domModal = document.querySelector("body > .modal");
+        this.domModalExplainAlgoMain = document.querySelector("body > .modal > .main.explain-algorithm");
+        this.domModalCleanOptionsMain = document.querySelector("body > .modal > .main.clean-options");
+        this.domModalSettingsMain = document.querySelector("body > .modal > .main.settings");
+        this.onClickPrevAlgoButton = () => {
+            this.choosedAlgorithmIndex--;
+            this.onChangeAlgorithm();
         };
-        _a.NEW_BUTTON_MEDIUM.onclick = () => {
-            _a.cellSize = "medium";
-            _a.initBoard();
+        this.onClickNextAlgoButton = () => {
+            this.choosedAlgorithmIndex++;
+            this.onChangeAlgorithm();
         };
-        _a.NEW_BUTTON_BIG.onclick = () => {
-            _a.cellSize = "big";
-            _a.initBoard();
+        this.onClickAlgorithm = () => {
+            this.domModal.classList.add("active");
+            this.domModalExplainAlgoMain.classList.add("active");
+            this.domModalExplainAlgoMain.querySelector(".body").textContent =
+                this.algorithmChoosed.explanation;
+            const confirmButton = this.domModalExplainAlgoMain.querySelector(".footer > .button.confirm");
+            confirmButton.addEventListener("click", () => {
+                this.domModal.classList.remove("active");
+                this.domModalExplainAlgoMain.classList.remove("active");
+            });
         };
-        _a.MAZE_BUTTON.onclick = () => {
-            _a.initBoard();
-            _a.grid = Maze.createMaze(_a.grid);
-        };
-        _a.RUN_BUTTON.onclick = _a.onClickRun;
-    }
-    static initBoard() {
-        _a.PANEL.innerHTML = "";
-        if (_a.grid)
-            _a.grid.length = 0;
-        _a.grid = [];
-        const d = _a.cellSize === "small"
-            ? 5
-            : _a.cellSize === "medium"
-                ? 10
-                : 15;
-        const numOfRows = Math.floor((_a.PANEL.clientHeight - 30) / d);
-        const numOfColumns = Math.floor((_a.PANEL.clientWidth - 30) / d);
-        const cellSideLength = 100 / numOfColumns;
-        for (let i = 0; i < numOfRows; i++) {
-            const rowDiv = document.createElement("div");
-            rowDiv.className = "row";
-            _a.grid[i] = [];
-            for (let j = 0; j < numOfColumns; j++) {
-                const cell = new Cell(i, j, cellSideLength);
-                rowDiv.appendChild(cell.div);
-                _a.grid[i][j] = cell;
-                cell.div.onmouseenter = _a.onMouseEnter(cell);
-                cell.div.onmousedown = _a.onMouseDownOnCell(cell);
+        this.onClickVisualizeButton = async () => {
+            this.cleanExploreResult();
+            this.domPrevAlgoButton.classList.add("disabled");
+            this.domPrevAlgoButton.removeEventListener("click", this.onClickPrevAlgoButton);
+            this.domNextAlgoButton.classList.add("disabled");
+            this.domNextAlgoButton.removeEventListener("click", this.onClickNextAlgoButton);
+            this.domVisualizeButton.classList.add("disabled");
+            this.domVisualizeButton.removeEventListener("click", this.onClickVisualizeButton);
+            this.domCleanButton.classList.add("disabled");
+            this.domCleanButton.removeEventListener("click", this.onClickCleanButton);
+            this.domGenMazeButton.classList.add("disabled");
+            this.domGenMazeButton.removeEventListener("click", this.onClickGenMazeButton);
+            this.domSettingsButton.classList.add("disabled");
+            this.domSettingsButton.removeEventListener("click", this.onClickSettingsButton);
+            document.removeEventListener("mouseup", this.onMouseUp);
+            for (let row of this.grid) {
+                for (let cell of row) {
+                    if (cell.mouseEnterEventListener) {
+                        cell.div.removeEventListener("mouseenter", cell.mouseEnterEventListener);
+                    }
+                    cell.mouseEnterEventListener = undefined;
+                    if (cell.mouseDownEventListener) {
+                        cell.div.removeEventListener("mousedown", cell.mouseDownEventListener);
+                    }
+                    cell.mouseDownEventListener = undefined;
+                }
             }
-            _a.PANEL.appendChild(rowDiv);
-        }
-        _a.source = _a.grid[0][0].setSource();
-        _a.target =
-            _a.grid[_a.grid.length - 1][_a.grid[0].length - 1].setTarget();
-    }
-    static dijkstra(unsolvedCells = _a.prepareForDijkstra()) {
-        return new Promise((resolve) => {
-            const minUnsolvedDistance = Math.min(...unsolvedCells.map((c) => {
-                return c.id in _a.distanceFromSourceTo
-                    ? _a.distanceFromSourceTo[c.id]
-                    : Infinity;
-            }));
-            if (minUnsolvedDistance < Infinity && !isNaN(minUnsolvedDistance)) {
-                const cellsToSolve = unsolvedCells.filter((c) => _a.distanceFromSourceTo[c.id] === minUnsolvedDistance);
-                unsolvedCells = unsolvedCells.filter((c) => _a.distanceFromSourceTo[c.id] !== minUnsolvedDistance);
-                for (let w of cellsToSolve) {
-                    w.setExplored();
-                    if (w.isTarget) {
-                        resolve();
-                        return;
+            this.algorithmObject = new this.algorithmChoosed(this.grid, this.speed === "slow" ? 250 : this.speed === "normal" ? 80 : 0);
+            await this.algorithmObject?.execute();
+            await this.algorithmObject?.showPath(this.target, false, 0);
+            this.onChangeAlgorithm();
+            this.domVisualizeButton.classList.remove("disabled");
+            this.domVisualizeButton.addEventListener("click", this.onClickVisualizeButton);
+            this.domCleanButton.classList.remove("disabled");
+            this.domCleanButton.addEventListener("click", this.onClickCleanButton);
+            this.domGenMazeButton.classList.remove("disabled");
+            this.domGenMazeButton.addEventListener("click", this.onClickGenMazeButton);
+            this.domSettingsButton.classList.remove("disabled");
+            this.domSettingsButton.addEventListener("click", this.onClickSettingsButton);
+            document.addEventListener("mouseup", this.onMouseUp);
+            for (let row of this.grid) {
+                for (let cell of row) {
+                    const el1 = this.onMouseEnter(cell);
+                    cell.div.addEventListener("mouseenter", el1);
+                    cell.mouseEnterEventListener = el1;
+                    const el2 = this.onMouseDownOnCell(cell);
+                    cell.div.addEventListener("mousedown", el2);
+                    cell.mouseDownEventListener = el2;
+                }
+            }
+        };
+        this.onClickCleanButton = () => {
+            this.domModal.classList.add("active");
+            this.domModalCleanOptionsMain.classList.add("active");
+            const left = this.domModalCleanOptionsMain.querySelector(".body > .left");
+            const leftOption = left.querySelector(".option-container > input");
+            const right = this.domModalCleanOptionsMain.querySelector(".body > .right");
+            const rightOption = right.querySelector(".option-container > input");
+            left.addEventListener("click", () => {
+                this.cleanMode = "retain-the-wall";
+                leftOption.checked = true;
+                rightOption.checked = false;
+            });
+            right.addEventListener("click", () => {
+                this.cleanMode = "clean-all";
+                rightOption.checked = true;
+                leftOption.checked = false;
+            });
+            if (this.cleanMode === "retain-the-wall")
+                leftOption.checked = true;
+            else
+                rightOption.checked = true;
+            const discardButton = this.domModalCleanOptionsMain.querySelector(".footer > .button.discard");
+            const confirmButton = this.domModalCleanOptionsMain.querySelector(".footer > .button.confirm");
+            discardButton.addEventListener("click", () => {
+                this.domModal.classList.remove("active");
+                this.domModalCleanOptionsMain.classList.remove("active");
+            });
+            confirmButton.addEventListener("click", () => {
+                if (this.cleanMode === "retain-the-wall")
+                    this.cleanExploreResult();
+                else
+                    this.cleanAll();
+                this.domModal.classList.remove("active");
+                this.domModalCleanOptionsMain.classList.remove("active");
+            });
+        };
+        this.onClickGenMazeButton = () => {
+            this.cleanAll();
+            this.grid = Maze.createMaze(this.grid);
+        };
+        this.onClickSettingsButton = () => {
+            this.domModal.classList.add("active");
+            this.domModalSettingsMain.classList.add("active");
+            let newCellSize = this.cellSize;
+            let newSpeed = this.speed;
+            const domCellSizeOptionContainers = this.domModalSettingsMain.querySelectorAll(".body > .row.cell-size > .options > .option-container");
+            for (let dom of domCellSizeOptionContainers) {
+                const domInput = dom.querySelector("input");
+                if (this.cellSize === domInput.value)
+                    domInput.checked = true;
+                dom.addEventListener("click", () => {
+                    newCellSize = domInput.value;
+                });
+            }
+            const domSpeedOptionContainers = this.domModalSettingsMain.querySelectorAll(".body > .row.speed > .options > .option-container");
+            for (let dom of domSpeedOptionContainers) {
+                const domInput = dom.querySelector("input");
+                if (this.speed === domInput.value)
+                    domInput.checked = true;
+                dom.addEventListener("click", () => {
+                    newSpeed = domInput.value;
+                });
+            }
+            this.domModalSettingsMain
+                .querySelector(".footer > .button.discard")
+                .addEventListener("click", () => {
+                this.domModal.classList.remove("active");
+                this.domModalSettingsMain.classList.remove("active");
+            });
+            this.domModalSettingsMain
+                .querySelector(".footer > .button.confirm")
+                .addEventListener("click", () => {
+                this.cellSize = newCellSize;
+                this.speed = newSpeed;
+                this.domModal.classList.remove("active");
+                this.domModalSettingsMain.classList.remove("active");
+                this.initCanvas();
+            });
+        };
+        this.onMouseUp = () => {
+            this.isMousePressedOnCell = false;
+            this.isMovingTarget = false;
+            this.isMovingSource = false;
+        };
+        this.onMouseEnter = (cell) => {
+            return () => {
+                if (this.isMousePressedOnCell) {
+                    if (!this.isMovingTarget && !this.isMovingSource) {
+                        cell.setWall();
                     }
                     else {
-                        for (let v of Object.values(_a.graph.graph[w.id].neighbors).map((e) => e.node)) {
-                            const oldDistance = v.id in _a.distanceFromSourceTo
-                                ? _a.distanceFromSourceTo[v.id]
-                                : Infinity;
-                            const newDistance = Math.min(oldDistance, minUnsolvedDistance + _a.graph.getCost(w, v));
-                            if (newDistance !== Infinity) {
-                                if (newDistance < oldDistance) {
-                                    _a.distanceFromSourceTo[v.id] =
-                                        newDistance;
-                                    _a.pathFromSourceTo[v.id] = [
-                                        ...(_a.pathFromSourceTo[w.id] || []),
-                                        v,
-                                    ];
-                                }
-                            }
+                        if (this.isMovingSource && !cell.isTarget) {
+                            this.source.backToStoredState();
+                            cell.storeState();
+                            this.source = cell.setSource();
+                        }
+                        else if (this.isMovingTarget && !cell.isSource) {
+                            this.target.backToStoredState();
+                            cell.storeState();
+                            this.target = cell.setTarget();
+                            this.cleanPath();
+                            this.algorithmObject?.showPath(this.target, true, 0);
                         }
                     }
                 }
-                if (unsolvedCells.length > 0) {
-                    setTimeout(() => resolve(_a.dijkstra(unsolvedCells)));
-                    return;
-                }
-            }
-            resolve();
-            return;
-        });
+            };
+        };
+        this.onMouseDownOnCell = (cell) => {
+            return () => {
+                this.isMousePressedOnCell = true;
+                cell.setWall();
+                if (cell.isSource)
+                    this.isMovingSource = true;
+                else if (cell.isTarget)
+                    this.isMovingTarget = true;
+            };
+        };
+        this.choosedAlgorithmIndex = 0;
+        this.cellSize = "l";
+        this.speed = "fast";
+        this.cleanMode = "retain-the-wall";
+        this.isMousePressedOnCell = false;
+        this.isMovingSource = false;
+        this.isMovingTarget = false;
+        this.grid = [];
+        this.source = new Cell(0, 0, 0);
+        this.target = new Cell(0, 0, 0);
+        this.initCanvas();
+        this.onChangeAlgorithm();
+        this.domAlgorithmText.addEventListener("click", this.onClickAlgorithm);
+        this.domVisualizeButton.addEventListener("click", this.onClickVisualizeButton);
+        this.domCleanButton.addEventListener("click", this.onClickCleanButton);
+        this.domGenMazeButton.addEventListener("click", this.onClickGenMazeButton);
+        this.domSettingsButton.addEventListener("click", this.onClickSettingsButton);
+        document.addEventListener("mouseup", this.onMouseUp);
+        window.addEventListener("resize", throttle(() => window.location.reload(), 100));
     }
-    static prepareForDijkstra() {
-        const unsolvedCells = [..._a.grid.flat()].filter((cell) => cell.id !== _a.source.id);
-        _a.pathFromSourceTo = { [_a.source.id]: [_a.source] };
-        _a.distanceFromSourceTo = { [_a.source.id]: 0 };
-        unsolvedCells.forEach((cell) => {
-            const distance = _a.graph.getCost(cell, this.source);
-            if (distance !== Infinity) {
-                _a.distanceFromSourceTo[cell.id] = distance;
-                _a.pathFromSourceTo[cell.id] = [_a.source, cell];
-            }
-        });
-        return unsolvedCells;
+    get algorithmChoosed() {
+        return algorithmOptions[this.choosedAlgorithmIndex];
     }
-    static showPath(path, instant = false, idx = 0) {
-        if (instant) {
-            for (let cell of path) {
-                if (!cell.isSource && !cell.isTarget)
-                    cell.setShortestPath();
+    initCanvas() {
+        this.domCanvas.innerHTML = "";
+        if (this.grid)
+            this.grid.length = 0;
+        else
+            this.grid = [];
+        const d = this.cellSize === "s" ? 15 : this.cellSize === "m" ? 30 : 45;
+        const rowCount = Math.floor(this.domCanvas.clientHeight / d);
+        const colCount = Math.floor(this.domCanvas.clientWidth / d);
+        const sideLengthPercent = 100 / colCount;
+        for (let i = 0; i < rowCount; i++) {
+            const rowDiv = document.createElement("div");
+            rowDiv.className = "row";
+            this.grid[i] = [];
+            for (let j = 0; j < colCount; j++) {
+                const cell = new Cell(i, j, sideLengthPercent);
+                rowDiv.appendChild(cell.div);
+                this.grid[i][j] = cell;
+                const el1 = this.onMouseEnter(cell);
+                cell.div.addEventListener("mouseenter", el1);
+                cell.mouseEnterEventListener = el1;
+                const el2 = this.onMouseDownOnCell(cell);
+                cell.div.addEventListener("mousedown", el2);
+                cell.mouseDownEventListener = el2;
             }
+            this.domCanvas.appendChild(rowDiv);
         }
-        else {
-            return new Promise((resolve) => {
-                if (idx < path.length) {
-                    const cell = path[idx];
-                    if (!cell.isSource && !cell.isTarget) {
-                        cell.setShortestPath();
-                    }
-                    setTimeout(() => resolve(_a.showPath(path, instant, idx + 1)), 5);
-                }
-                else
-                    resolve();
-            });
+        this.source = this.grid[0][0].setSource();
+        this.target = this.grid[rowCount - 1][colCount - 1].setTarget();
+        this.algorithmObject = undefined;
+    }
+    onChangeAlgorithm() {
+        this.domAlgorithmText.textContent = this.algorithmChoosed.algorithmName;
+        if (this.choosedAlgorithmIndex === 0) {
+            this.domPrevAlgoButton.classList.add("disabled");
+            this.domPrevAlgoButton.removeEventListener("click", this.onClickPrevAlgoButton);
+        }
+        else if (this.choosedAlgorithmIndex === 1) {
+            this.domPrevAlgoButton.classList.remove("disabled");
+            this.domPrevAlgoButton.addEventListener("click", this.onClickPrevAlgoButton);
+        }
+        if (this.choosedAlgorithmIndex === algorithmOptions.length - 1) {
+            this.domNextAlgoButton.classList.add("disabled");
+            this.domNextAlgoButton.removeEventListener("click", this.onClickNextAlgoButton);
+        }
+        else if (this.choosedAlgorithmIndex === algorithmOptions.length - 2) {
+            this.domNextAlgoButton.classList.remove("disabled");
+            this.domNextAlgoButton.addEventListener("click", this.onClickNextAlgoButton);
         }
     }
-    static clearPath() {
-        for (let row of _a.grid) {
+    cleanPath() {
+        for (let row of this.grid) {
             for (let cell of row) {
                 if (cell.isShortestPath && cell.isExplored)
                     cell.setExplored();
             }
         }
     }
+    cleanExploreResult() {
+        for (let row of this.grid) {
+            for (let cell of row) {
+                if (cell.isExplored)
+                    cell.setUnexplored();
+            }
+        }
+        this.algorithmObject = undefined;
+    }
+    cleanAll() {
+        for (let row of this.grid) {
+            for (let cell of row) {
+                if (!(cell.isSource || cell.isTarget))
+                    cell.setBlank();
+            }
+        }
+        this.algorithmObject = undefined;
+    }
 }
-_a = Main;
-Main.PANEL = document.getElementById("panel");
-Main.NEW_BUTTON_SMALL = document.getElementById("new-btn-small");
-Main.NEW_BUTTON_MEDIUM = document.getElementById("new-btn-medium");
-Main.NEW_BUTTON_BIG = document.getElementById("new-btn-big");
-Main.RUN_BUTTON = document.getElementById("run-btn");
-Main.MAZE_BUTTON = document.getElementById("maze-btn");
-Main.cellSize = "big";
-Main.isMousePressed = false;
-Main.isMovingSource = false;
-Main.isMovingTarget = false;
-Main.onMouseUp = () => {
-    _a.isMousePressed = false;
-    if (_a.isMovingTarget)
-        _a.isMovingTarget = false;
-    if (_a.isMovingSource)
-        _a.isMovingSource = false;
-};
-Main.onMouseEnter = (cell) => {
-    return () => {
-        if (_a.isMousePressed) {
-            if (!_a.isMovingTarget && !_a.isMovingSource) {
-                cell.setWall();
-            }
-            else {
-                if (_a.isMovingSource && !cell.isTarget) {
-                    _a.source.backToStoredState();
-                    cell.storeState();
-                    _a.source = cell.setSource();
-                }
-                else if (_a.isMovingTarget && !cell.isSource) {
-                    _a.target.backToStoredState();
-                    cell.storeState();
-                    _a.target = cell.setTarget();
-                    _a.clearPath();
-                    if (_a.pathFromSourceTo &&
-                        _a.target.id in _a.pathFromSourceTo) {
-                        _a.showPath(_a.pathFromSourceTo[_a.target.id], true);
-                    }
-                }
-            }
-        }
-    };
-};
-Main.onMouseDownOnCell = (cell) => {
-    return () => {
-        _a.isMousePressed = true;
-        cell.setWall();
-        if (cell.isSource)
-            _a.isMovingSource = true;
-        else if (cell.isTarget)
-            _a.isMovingTarget = true;
-    };
-};
-Main.onClickRun = async () => {
-    for (let row of _a.grid) {
-        for (let cell of row) {
-            if (cell.isExplored)
-                cell.setUnexplored();
-        }
-    }
-    document.removeEventListener("mouseup", _a.onMouseUp);
-    _a.NEW_BUTTON_SMALL.disabled = true;
-    _a.NEW_BUTTON_MEDIUM.disabled = true;
-    _a.NEW_BUTTON_BIG.disabled = true;
-    _a.RUN_BUTTON.disabled = true;
-    _a.MAZE_BUTTON.disabled = true;
-    for (let row of _a.grid) {
-        for (let cell of row) {
-            cell.div.onmouseenter = null;
-            cell.div.onmousedown = null;
-        }
-    }
-    _a.graph = new Graph(_a.grid);
-    await _a.dijkstra();
-    if (_a.target.id in _a.pathFromSourceTo) {
-        await _a.showPath(_a.pathFromSourceTo[_a.target.id]);
-    }
-    document.addEventListener("mouseup", _a.onMouseUp);
-    _a.NEW_BUTTON_SMALL.disabled = false;
-    _a.NEW_BUTTON_MEDIUM.disabled = false;
-    _a.NEW_BUTTON_BIG.disabled = false;
-    _a.RUN_BUTTON.disabled = false;
-    _a.MAZE_BUTTON.disabled = false;
-    for (let row of _a.grid) {
-        for (let cell of row) {
-            cell.div.onmouseenter = _a.onMouseEnter(cell);
-            cell.div.onmousedown = _a.onMouseDownOnCell(cell);
-        }
-    }
-};
-Main.main();
+new Main();

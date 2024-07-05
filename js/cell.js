@@ -1,5 +1,5 @@
 export default class Cell {
-    constructor(rowNum, colNum, sideLengeh) {
+    constructor(rowNum, colNum, sideLengthPercent) {
         this.storedState = {
             isWall: false,
             isSource: false,
@@ -15,7 +15,7 @@ export default class Cell {
         this.div = document.createElement("div");
         this.div.id = `(${rowNum},${colNum})`;
         this.div.className = "cell";
-        this.div.style.width = `${sideLengeh}%`;
+        this.div.style.width = `${sideLengthPercent}%`;
     }
     get id() {
         return this.div.id;

@@ -12,8 +12,14 @@ export default class Cell {
     public isExplored: boolean;
     public isShortestPath: boolean;
     public div: HTMLElement;
+    public mouseEnterEventListener: EventListener | undefined;
+    public mouseDownEventListener: EventListener | undefined;
 
-    public constructor(rowNum: number, colNum: number, sideLengeh: number) {
+    public constructor(
+        rowNum: number,
+        colNum: number,
+        sideLengthPercent: number
+    ) {
         this.storedState = {
             isWall: false,
             isSource: false,
@@ -29,7 +35,7 @@ export default class Cell {
         this.div = document.createElement("div");
         this.div.id = `(${rowNum},${colNum})`;
         this.div.className = "cell";
-        this.div.style.width = `${sideLengeh}%`;
+        this.div.style.width = `${sideLengthPercent}%`;
     }
     public get id(): string {
         return this.div.id;
