@@ -7,7 +7,7 @@
     "watch-tsc": "tsc -w",
     "watch-sass": "sass --watch --no-source-map --style=compressed style.scss style.css",
     "dev": "concurrently 'npm:watch-*' serve 'open http://localhost:3000'",
-    "build": "tsc && sass style.scss style.css"
+    "build": "tsc && sass --no-source-map --style=compressed style.scss style.css"
   },
   "repository": {
     "type": "git",

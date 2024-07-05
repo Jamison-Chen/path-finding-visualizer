@@ -96,7 +96,7 @@ export class AStar {
     execute() {
         return new Promise(() => { });
     }
-    showPath(target, instant = false, currentIndex = 0) {
+    showPath() {
     }
 }
 AStar.algorithmName = "A*";

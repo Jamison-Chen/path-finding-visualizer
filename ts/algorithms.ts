@@ -136,11 +136,7 @@ export class AStar implements PathFindingAlgorithm {
     public execute(): Promise<void> {
         return new Promise(() => {});
     }
-    public showPath(
-        target: Cell,
-        instant: boolean = false,
-        currentIndex: number = 0
-    ): void | Promise<void> {
+    public showPath(): void | Promise<void> {
         // TODO
     }
 }
