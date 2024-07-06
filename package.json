@@ -1,6 +1,6 @@
 {
-  "name": "path-finding-visualize",
-  "version": "1.0.0",
+  "name": "path-finding-visualizer",
+  "version": "2.0.0",
   "description": "",
   "main": "./js/main.js",
   "scripts": {
@@ -11,15 +11,15 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/Jamison-Chen/path-finding-visualize.git"
+    "url": "git+https://github.com/Jamison-Chen/path-finding-visualizer.git"
   },
   "keywords": [],
   "author": "Jamison Chen",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/Jamison-Chen/path-finding-visualize/issues"
+    "url": "https://github.com/Jamison-Chen/path-finding-visualizer/issues"
   },
-  "homepage": "https://github.com/Jamison-Chen/path-finding-visualize",
+  "homepage": "https://github.com/Jamison-Chen/path-finding-visualizer",
   "devDependencies": {
     "concurrently": "^8.2.2",
     "sass": "^1.77.6",
