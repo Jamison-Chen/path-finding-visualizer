@@ -19,7 +19,7 @@
   "bugs": {
     "url": "https://github.com/Jamison-Chen/path-finding-visualizer/issues"
   },
-  "homepage": "https://github.com/Jamison-Chen/path-finding-visualizer",
+  "homepage": "https://jamison-chen.github.io/path-finding-visualizer/",
   "devDependencies": {
     "concurrently": "^8.2.2",
     "sass": "^1.77.6",
