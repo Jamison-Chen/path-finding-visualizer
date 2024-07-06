@@ -67,18 +67,13 @@ export class Dijkstra {
             return;
         const path = this.pathFromSourceTo[target.id];
         if (instant) {
-            for (let cell of path) {
-                if (!cell.isSource && !cell.isTarget)
-                    cell.setShortestPath();
-            }
+            for (let cell of path)
+                cell.setShortestPath();
         }
         else {
             return new Promise((resolve) => {
                 if (currentIndex < path.length) {
-                    const cell = path[currentIndex];
-                    if (!cell.isSource && !cell.isTarget) {
-                        cell.setShortestPath();
-                    }
+                    path[currentIndex].setShortestPath();
                     setTimeout(() => {
                         resolve(this.showPath(target, instant, currentIndex + 1));
                     }, 5);

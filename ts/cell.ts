@@ -1,16 +1,21 @@
 export default class Cell {
-    private storedState: {
+    private static readonly cellClasses = [
+        "wall",
+        "target",
+        "explored",
+        "source",
+        "path",
+    ];
+    private prevState: {
         isWall: boolean;
-        isSource: boolean;
-        isTarget: boolean;
-        isExplored: boolean;
+        explored: boolean;
         isShortestPath: boolean;
     };
-    public isWall: boolean;
-    public isSource: boolean;
-    public isTarget: boolean;
-    public isExplored: boolean;
-    public isShortestPath: boolean;
+    private _isWall: boolean;
+    private _isSource: boolean;
+    private _isTarget: boolean;
+    private _explored: boolean;
+    private _isShortestPath: boolean;
     public div: HTMLElement;
     public mouseEnterEventListener: EventListener | undefined;
     public mouseDownEventListener: EventListener | undefined;
@@ -20,18 +25,16 @@ export default class Cell {
         colNum: number,
         sideLengthPercent: number
     ) {
-        this.storedState = {
+        this.prevState = {
             isWall: false,
-            isSource: false,
-            isTarget: false,
-            isExplored: false,
+            explored: false,
             isShortestPath: false,
         };
-        this.isWall = false;
-        this.isSource = false;
-        this.isTarget = false;
-        this.isExplored = false;
-        this.isShortestPath = false;
+        this._isWall = false;
+        this._isSource = false;
+        this._isTarget = false;
+        this._explored = false;
+        this._isShortestPath = false;
         this.div = document.createElement("div");
         this.div.id = `(${rowNum},${colNum})`;
         this.div.className = "cell";
@@ -40,107 +43,115 @@ export default class Cell {
     public get id(): string {
         return this.div.id;
     }
+    public get isWall(): boolean {
+        return this._isWall;
+    }
+    public get isSource(): boolean {
+        return this._isSource;
+    }
+    public get isTarget(): boolean {
+        return this._isTarget;
+    }
+    public get explored(): boolean {
+        return this._explored;
+    }
+    public get isShortestPath(): boolean {
+        return this._isShortestPath;
+    }
     public get position(): { row: number; col: number } {
         const pos = this.div.id.replace(/\(+|\)+/g, "").split(",");
         return { row: parseInt(pos[0]), col: parseInt(pos[1]) };
     }
     public setBlank(): void {
-        this.isWall = false;
-        this.isSource = false;
-        this.isTarget = false;
-        this.isExplored = false;
-        this.isShortestPath = false;
-        this.div.classList.remove(
-            "wall",
-            "target",
-            "explored",
-            "source",
-            "path"
-        );
+        this.storeState();
+        this._isWall = false;
+        this._isSource = false;
+        this._isTarget = false;
+        this._explored = false;
+        this._isShortestPath = false;
+        this.div.classList.remove(...Cell.cellClasses, "with-hint");
+        this.div.removeAttribute("data-hint-text");
     }
     public setSource(): Cell {
-        this.isWall = false;
-        this.isSource = true;
-        this.isTarget = false;
-        this.isExplored = false;
-        this.isShortestPath = false;
-        this.div.classList.remove("wall", "target", "explored", "path");
-        this.div.classList.add("source");
+        this.storeState();
+        this._isWall = false;
+        this._isSource = true;
+        this._isTarget = false;
+        this._explored = false;
+        this._isShortestPath = false;
+        this.div.classList.remove(...Cell.cellClasses);
+        this.div.classList.add("source", "with-hint");
+        this.div.setAttribute("data-hint-text", "Source");
         return this;
     }
     public setTarget(): Cell {
-        this.isWall = false;
-        this.isSource = false;
-        this.isTarget = true;
-        this.isExplored = false;
-        this.isShortestPath = false;
-        this.div.classList.remove("wall", "source", "explored", "path");
-        this.div.classList.add("target");
+        this.storeState();
+        this._isWall = false;
+        this._isSource = false;
+        this._isTarget = true;
+        this._explored = false;
+        this._isShortestPath = false;
+        this.div.classList.remove(...Cell.cellClasses);
+        this.div.classList.add("target", "with-hint");
+        this.div.setAttribute("data-hint-text", "Target");
         return this;
     }
-    public setExplored(): void {
-        if (!this.isWall && !this.isSource && !this.isTarget) {
-            this.isShortestPath = false;
-            this.isExplored = true;
-            this.div.classList.remove("wall", "source", "target", "path");
-            this.div.classList.add("explored");
-        }
+    public setExplored(force: boolean = false): void {
+        if (!force && this._isWall) return;
+        this.storeState();
+        this._explored = true;
+        if (!force && (this.isSource || this.isTarget)) return;
+        this._isWall = false;
+        this._isSource = false;
+        this._isTarget = false;
+        this._isShortestPath = false;
+        this.div.classList.remove(...Cell.cellClasses, "with-hint");
+        this.div.classList.add("explored");
+        this.div.removeAttribute("data-hint-text");
     }
-    public setUnexplored(): void {
-        if (!this.isWall && !this.isSource && !this.isTarget) this.setBlank();
-    }
-    public setShortestPath(): void {
-        if (!this.isWall && !this.isSource && !this.isTarget) {
-            this.isShortestPath = true;
-            this.div.classList.remove("wall", "source", "target", "explored");
-            this.div.classList.add("path");
+    public setShortestPath(force: boolean = false): void {
+        if (
+            !force &&
+            (this.isSource || this.isTarget || this.isWall || !this.explored)
+        ) {
+            return;
         }
+        this.storeState();
+        this._isWall = false;
+        this._isSource = false;
+        this._isTarget = false;
+        this._explored = true;
+        this._isShortestPath = true;
+        this.div.classList.remove(...Cell.cellClasses, "with-hint");
+        this.div.classList.add("explored", "path");
+        this.div.removeAttribute("data-hint-text");
     }
-    public setWall(): void {
-        if (!this.isSource && !this.isTarget) {
-            this.isShortestPath = false;
-            this.isExplored = false;
-            this.isWall = !this.isWall;
-            if (this.isWall) {
-                this.div.classList.remove(
-                    "explored",
-                    "source",
-                    "target",
-                    "path"
-                );
-                this.div.classList.add("wall");
-            } else this.div.classList.remove("wall");
-        }
+    public setWall(force: boolean = false): void {
+        if (!force && (this.isSource || this.isTarget)) return;
+        this.storeState();
+        if (!this._isWall) {
+            this._isWall = true;
+            this._isSource = false;
+            this._isTarget = false;
+            this._explored = false;
+            this._isShortestPath = false;
+            this.div.classList.remove(...Cell.cellClasses, "with-hint");
+            this.div.classList.add("wall");
+        } else this.setBlank();
+        this.div.removeAttribute("data-hint-text");
     }
     public storeState(): void {
-        this.storedState = {
-            isWall: this.isWall,
-            isSource: this.isSource,
-            isTarget: this.isTarget,
-            isExplored: this.isExplored,
-            isShortestPath: this.isShortestPath,
+        this.prevState = {
+            isWall: this._isWall,
+            explored: this._explored,
+            isShortestPath: this._isShortestPath,
         };
     }
-    public backToStoredState(): void {
-        this.div.classList.remove(
-            "target",
-            "source",
-            "explored",
-            "wall",
-            "path"
-        );
-        if (this.storedState.isWall) this.div.classList.add("wall");
-        else if (this.storedState.isSource) this.div.classList.add("source");
-        else if (this.storedState.isTarget) this.div.classList.add("target");
-        else if (this.storedState.isExplored) {
-            this.div.classList.add("explored");
-        } else if (this.storedState.isShortestPath) {
-            this.div.classList.add("path");
-        }
-        this.isWall = this.storedState.isWall;
-        this.isSource = this.storedState.isSource;
-        this.isTarget = this.storedState.isTarget;
-        this.isExplored = this.storedState.isExplored;
-        this.isShortestPath = this.storedState.isShortestPath;
+    public backToPrevState(): void {
+        // Only source or target will call this method.
+        if (this.prevState.isWall) this.setWall(true);
+        else if (this.prevState.isShortestPath) this.setShortestPath(true);
+        else if (this.prevState.explored) this.setExplored(true);
+        else this.setBlank();
     }
 }

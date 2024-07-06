@@ -332,6 +332,14 @@ class Main {
                 this.initCanvas();
             });
     };
+    private onMouseDownOnCell = (cell: Cell): EventListener => {
+        return (): void => {
+            this.isMousePressedOnCell = true;
+            if (cell.isSource) this.isMovingSource = true;
+            else if (cell.isTarget) this.isMovingTarget = true;
+            else cell.setWall();
+        };
+    };
     private onMouseUp = (): void => {
         this.isMousePressedOnCell = false;
         this.isMovingTarget = false;
@@ -344,26 +352,18 @@ class Main {
                     cell.setWall();
                 } else {
                     if (this.isMovingSource && !cell.isTarget) {
-                        this.source.backToStoredState();
-                        cell.storeState();
+                        this.source.backToPrevState();
                         this.source = cell.setSource();
+                        this.cleanPath();
+                        this.algorithmObject = undefined;
                     } else if (this.isMovingTarget && !cell.isSource) {
-                        this.target.backToStoredState();
-                        cell.storeState();
+                        this.target.backToPrevState();
                         this.target = cell.setTarget();
                         this.cleanPath();
                         this.algorithmObject?.showPath(this.target, true, 0);
                     }
                 }
             }
-        };
-    };
-    private onMouseDownOnCell = (cell: Cell): EventListener => {
-        return (): void => {
-            this.isMousePressedOnCell = true;
-            cell.setWall();
-            if (cell.isSource) this.isMovingSource = true;
-            else if (cell.isTarget) this.isMovingTarget = true;
         };
     };
     private onChangeAlgorithm(): void {
@@ -398,14 +398,21 @@ class Main {
     private cleanPath(): void {
         for (let row of this.grid) {
             for (let cell of row) {
-                if (cell.isShortestPath && cell.isExplored) cell.setExplored();
+                if (cell.isShortestPath) cell.setExplored();
             }
         }
     }
     private cleanExploreResult(): void {
         for (let row of this.grid) {
             for (let cell of row) {
-                if (cell.isExplored) cell.setUnexplored();
+                if (
+                    !cell.isWall &&
+                    !cell.isSource &&
+                    !cell.isTarget &&
+                    cell.explored
+                ) {
+                    cell.setBlank();
+                }
             }
         }
         this.algorithmObject = undefined;
@@ -413,7 +420,7 @@ class Main {
     private cleanAll(): void {
         for (let row of this.grid) {
             for (let cell of row) {
-                if (!(cell.isSource || cell.isTarget)) cell.setBlank();
+                if (!cell.isSource && !cell.isTarget) cell.setBlank();
             }
         }
         this.algorithmObject = undefined;

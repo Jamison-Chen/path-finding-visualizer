@@ -36,6 +36,7 @@ body {
     width: 100vw;
     margin: 0;
     background-color: $white;
+    overflow: hidden;
     & > .control-panel {
         position: relative;
         display: flex;
@@ -171,13 +172,14 @@ body {
                         background-color: $green;
                         opacity: 0.5;
                     }
-                }
-                &.path {
-                    &::after {
-                        height: 50%;
-                        width: 50%;
-                        border-radius: 100px;
-                        background-color: $yellow;
+                    &.path {
+                        &::after {
+                            height: 50%;
+                            width: 50%;
+                            border-radius: 100px;
+                            background-color: $yellow;
+                            opacity: 1;
+                        }
                     }
                 }
             }
@@ -339,7 +341,7 @@ body {
 
 .with-hint {
     position: relative;
-    &::after {
+    &::before {
         content: attr(data-hint-text);
         position: absolute;
         bottom: 0;
@@ -368,7 +370,7 @@ body {
     }
     @media (hover: hover) {
         &:hover:not(.disabled) {
-            &::after {
+            &::before {
                 display: initial;
             }
         }

@@ -171,6 +171,17 @@ class Main {
                 this.initCanvas();
             });
         };
+        this.onMouseDownOnCell = (cell) => {
+            return () => {
+                this.isMousePressedOnCell = true;
+                if (cell.isSource)
+                    this.isMovingSource = true;
+                else if (cell.isTarget)
+                    this.isMovingTarget = true;
+                else
+                    cell.setWall();
+            };
+        };
         this.onMouseUp = () => {
             this.isMousePressedOnCell = false;
             this.isMovingTarget = false;
@@ -184,29 +195,19 @@ class Main {
                     }
                     else {
                         if (this.isMovingSource && !cell.isTarget) {
-                            this.source.backToStoredState();
-                            cell.storeState();
+                            this.source.backToPrevState();
                             this.source = cell.setSource();
+                            this.cleanPath();
+                            this.algorithmObject = undefined;
                         }
                         else if (this.isMovingTarget && !cell.isSource) {
-                            this.target.backToStoredState();
-                            cell.storeState();
+                            this.target.backToPrevState();
                             this.target = cell.setTarget();
                             this.cleanPath();
                             this.algorithmObject?.showPath(this.target, true, 0);
                         }
                     }
                 }
-            };
-        };
-        this.onMouseDownOnCell = (cell) => {
-            return () => {
-                this.isMousePressedOnCell = true;
-                cell.setWall();
-                if (cell.isSource)
-                    this.isMovingSource = true;
-                else if (cell.isTarget)
-                    this.isMovingTarget = true;
             };
         };
         this.choosedAlgorithmIndex = 0;
@@ -285,7 +286,7 @@ class Main {
     cleanPath() {
         for (let row of this.grid) {
             for (let cell of row) {
-                if (cell.isShortestPath && cell.isExplored)
+                if (cell.isShortestPath)
                     cell.setExplored();
             }
         }
@@ -293,8 +294,12 @@ class Main {
     cleanExploreResult() {
         for (let row of this.grid) {
             for (let cell of row) {
-                if (cell.isExplored)
-                    cell.setUnexplored();
+                if (!cell.isWall &&
+                    !cell.isSource &&
+                    !cell.isTarget &&
+                    cell.explored) {
+                    cell.setBlank();
+                }
             }
         }
         this.algorithmObject = undefined;
@@ -302,7 +307,7 @@ class Main {
     cleanAll() {
         for (let row of this.grid) {
             for (let cell of row) {
-                if (!(cell.isSource || cell.isTarget))
+                if (!cell.isSource && !cell.isTarget)
                     cell.setBlank();
             }
         }

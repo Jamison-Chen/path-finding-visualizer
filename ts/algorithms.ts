@@ -105,18 +105,13 @@ export class Dijkstra implements PathFindingAlgorithm {
         if (!(target.id in this.pathFromSourceTo)) return;
         const path = this.pathFromSourceTo[target.id];
         if (instant) {
-            for (let cell of path) {
-                if (!cell.isSource && !cell.isTarget) cell.setShortestPath();
-            }
+            for (let cell of path) cell.setShortestPath();
         } else {
             // Recursive
             // Return promise to make the UI stay freezed before showing the whole path.
             return new Promise((resolve) => {
                 if (currentIndex < path.length) {
-                    const cell: Cell = path[currentIndex];
-                    if (!cell.isSource && !cell.isTarget) {
-                        cell.setShortestPath();
-                    }
+                    path[currentIndex].setShortestPath();
                     setTimeout(() => {
                         resolve(
                             this.showPath(target, instant, currentIndex + 1)

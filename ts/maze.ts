@@ -9,7 +9,6 @@ interface MazeNode {
 
 export default class Maze {
     public static createMaze(grid: Cell[][]): Cell[][] {
-        // Initialize wall of maze
         for (let row of grid) {
             for (let cell of row) {
                 if (
@@ -25,7 +24,6 @@ export default class Maze {
 
     private static wilsonMazeGraph(grid: any[][]): Graph<MazeNode> {
         const mazeGrid: MazeNode[][] = [];
-
         for (let i = 0; i < (grid.length + 1) / 2; i++) {
             const row: MazeNode[] = [];
             for (let j = 0; j < (grid[0].length + 1) / 2; j++) {
