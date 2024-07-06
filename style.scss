@@ -145,6 +145,7 @@ body {
                     background-color: $transparent-black;
                 }
                 &.source {
+                    cursor: grab;
                     &::after {
                         background-image: url("./icons/car.svg");
                         background-position: center;
@@ -154,6 +155,7 @@ body {
                     }
                 }
                 &.target {
+                    cursor: grab;
                     &::after {
                         background-image: url("./icons/marker.svg");
                         background-position: center;
@@ -166,11 +168,21 @@ body {
                     &::after {
                         background-color: $bluish-black;
                     }
+                    @media (hover: hover) {
+                        &:hover::after {
+                            opacity: 0.8;
+                        }
+                    }
                 }
                 &.explored {
                     &::after {
                         background-color: $green;
                         opacity: 0.5;
+                    }
+                    @media (hover: hover) {
+                        &:hover::after {
+                            opacity: 0.8 !important;
+                        }
                     }
                     &.path {
                         &::after {
@@ -179,6 +191,11 @@ body {
                             border-radius: 100px;
                             background-color: $yellow;
                             opacity: 1;
+                        }
+                        @media (hover: hover) {
+                            &:hover::after {
+                                // opacity: 0.8;
+                            }
                         }
                     }
                 }
