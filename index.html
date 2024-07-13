@@ -134,13 +134,49 @@
         <div class="canvas"></div>
         <div class="modal">
             <div class="background"></div>
+            <div class="main tutorial" data-order="0">
+                <div class="body" data-order="0">
+                    <video width="420" autoplay muted loop preload="auto">
+                        <source src="images/demo1.mp4" type="video/mp4" />
+                    </video>
+                    <h2 class="subtitle">Drag to create wall.</h2>
+                </div>
+                <div class="body" data-order="1">
+                    <video width="420" autoplay muted loop preload="auto">
+                        <source src="images/demo2.mp4" type="video/mp4" />
+                    </video>
+                    <h2 class="subtitle">Place the source and target.</h2>
+                </div>
+                <div class="body" data-order="2">
+                    <video width="420" autoplay muted loop preload="auto">
+                        <source src="images/demo3.mp4" type="video/mp4" />
+                    </video>
+                    <h2 class="subtitle">Click Visualize.</h2>
+                </div>
+                <div class="body" data-order="3">
+                    <video width="420" autoplay muted loop preload="auto">
+                        <source src="images/demo4.mp4" type="video/mp4" />
+                    </video>
+                    <h2 class="subtitle">Voila!!</h2>
+                </div>
+                <div class="footer">
+                    <div class="do-not-show">
+                        <input type="checkbox" name="doNotShow" value="s" />
+                        <div class="text">Don't show this again.</div>
+                    </div>
+                    <div class="button-container">
+                        <div class="button discard">Skip</div>
+                        <div class="button confirm">Next</div>
+                    </div>
+                </div>
+            </div>
             <div class="main explain-algorithm">
                 <div class="header">
                     <div class="text">Algorithm Explanation</div>
                 </div>
                 <div class="body"></div>
                 <div class="footer">
-                    <div class="button confirm">Got it!</div>
+                    <div class="button confirm-fill">Got it!</div>
                 </div>
             </div>
             <div class="main clean-options">
@@ -181,7 +217,7 @@
                 </div>
                 <div class="footer">
                     <div class="button discard">Discard</div>
-                    <div class="button confirm">Clean</div>
+                    <div class="button confirm-fill">Clean</div>
                 </div>
             </div>
             <div class="main settings">
@@ -244,7 +280,7 @@
                 </div>
                 <div class="footer">
                     <div class="button discard">Discard</div>
-                    <div class="button confirm">Save</div>
+                    <div class="button confirm-fill">Save</div>
                 </div>
             </div>
         </div>

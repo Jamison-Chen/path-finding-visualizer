@@ -19,9 +19,39 @@ class Main {
         this.domSettingsButton = document.querySelector("body > .control-panel > .right > .settings");
         this.domCanvas = document.querySelector("body > .canvas");
         this.domModal = document.querySelector("body > .modal");
+        this.domModalTutorialMain = document.querySelector("body > .modal > .main.tutorial");
         this.domModalExplainAlgoMain = document.querySelector("body > .modal > .main.explain-algorithm");
         this.domModalCleanOptionsMain = document.querySelector("body > .modal > .main.clean-options");
         this.domModalSettingsMain = document.querySelector("body > .modal > .main.settings");
+        this.tutorialLocalStorageKey = "not-show-tutorial";
+        this.onClickTutorialDoNotShow = (e) => {
+            if (e.currentTarget.checked) {
+                window.localStorage.setItem(this.tutorialLocalStorageKey, "1");
+            }
+            else
+                window.localStorage.removeItem(this.tutorialLocalStorageKey);
+        };
+        this.onClickTutorialNext = () => {
+            if (this.tutorialStepIndex == 3)
+                this.onClickTutorialSkip();
+            else {
+                this.domModalTutorialMain
+                    .querySelector(`.body[data-order='${this.tutorialStepIndex}']`)
+                    ?.classList.remove("active");
+                this.tutorialStepIndex += 1;
+                this.domModalTutorialMain.setAttribute("data-order", `${this.tutorialStepIndex}`);
+                this.domModalTutorialMain
+                    .querySelector(`.body[data-order='${this.tutorialStepIndex}']`)
+                    ?.classList.add("active");
+                if (this.tutorialStepIndex == 3) {
+                    this.domModalTutorialMain.querySelector(".footer > .button-container > .confirm").innerHTML = "Close";
+                }
+            }
+        };
+        this.onClickTutorialSkip = () => {
+            this.domModal.classList.remove("active");
+            this.domModalTutorialMain.classList.remove("active");
+        };
         this.onClickPrevAlgoButton = () => {
             this.choosedAlgorithmIndex--;
             this.onChangeAlgorithm();
@@ -35,8 +65,9 @@ class Main {
             this.domModalExplainAlgoMain.classList.add("active");
             this.domModalExplainAlgoMain.querySelector(".body").textContent =
                 this.algorithmChoosed.explanation;
-            const confirmButton = this.domModalExplainAlgoMain.querySelector(".footer > .button.confirm");
-            confirmButton.addEventListener("click", () => {
+            this.domModalExplainAlgoMain
+                .querySelector(".footer > .button.confirm-fill")
+                .addEventListener("click", () => {
                 this.domModal.classList.remove("active");
                 this.domModalExplainAlgoMain.classList.remove("active");
             });
@@ -113,15 +144,18 @@ class Main {
                 leftOption.checked = true;
             else
                 rightOption.checked = true;
-            const discardButton = this.domModalCleanOptionsMain.querySelector(".footer > .button.discard");
-            const confirmButton = this.domModalCleanOptionsMain.querySelector(".footer > .button.confirm");
-            discardButton.addEventListener("click", () => {
+            this.domModalCleanOptionsMain
+                .querySelector(".footer > .button.discard")
+                .addEventListener("click", () => {
                 this.domModal.classList.remove("active");
                 this.domModalCleanOptionsMain.classList.remove("active");
             });
-            confirmButton.addEventListener("click", () => {
-                if (this.cleanMode === "retain-the-wall")
+            this.domModalCleanOptionsMain
+                .querySelector(".footer > .button.confirm-fill")
+                .addEventListener("click", () => {
+                if (this.cleanMode === "retain-the-wall") {
                     this.cleanExploreResult();
+                }
                 else
                     this.cleanAll();
                 this.domModal.classList.remove("active");
@@ -144,6 +178,7 @@ class Main {
                     domInput.checked = true;
                 dom.addEventListener("click", () => {
                     newCellSize = domInput.value;
+                    domInput.checked = true;
                 });
             }
             const domSpeedOptionContainers = this.domModalSettingsMain.querySelectorAll(".body > .row.speed > .options > .option-container");
@@ -153,6 +188,7 @@ class Main {
                     domInput.checked = true;
                 dom.addEventListener("click", () => {
                     newSpeed = domInput.value;
+                    domInput.checked = true;
                 });
             }
             this.domModalSettingsMain
@@ -162,7 +198,7 @@ class Main {
                 this.domModalSettingsMain.classList.remove("active");
             });
             this.domModalSettingsMain
-                .querySelector(".footer > .button.confirm")
+                .querySelector(".footer > .button.confirm-fill")
                 .addEventListener("click", () => {
                 this.cellSize = newCellSize;
                 this.speed = newSpeed;
@@ -210,6 +246,7 @@ class Main {
                 }
             };
         };
+        this.tutorialStepIndex = 0;
         this.choosedAlgorithmIndex = 0;
         this.cellSize = "l";
         this.speed = "fast";
@@ -229,6 +266,23 @@ class Main {
         this.domSettingsButton.addEventListener("click", this.onClickSettingsButton);
         document.addEventListener("mouseup", this.onMouseUp);
         window.addEventListener("resize", throttle(() => window.location.reload(), 100));
+        if (!window.localStorage.getItem(this.tutorialLocalStorageKey)) {
+            this.domModalTutorialMain.setAttribute("data-order", `${this.tutorialStepIndex}`);
+            this.domModalTutorialMain
+                .querySelector(`.body[data-order='${this.tutorialStepIndex}']`)
+                ?.classList.add("active");
+            this.domModal.classList.add("active");
+            this.domModalTutorialMain.classList.add("active");
+            this.domModalTutorialMain
+                .querySelector(".footer > .do-not-show > input")
+                ?.addEventListener("click", this.onClickTutorialDoNotShow);
+            this.domModalTutorialMain
+                .querySelector(".footer > .button-container > .discard")
+                ?.addEventListener("click", this.onClickTutorialSkip);
+            this.domModalTutorialMain
+                .querySelector(".footer > .button-container > .confirm")
+                ?.addEventListener("click", this.onClickTutorialNext);
+        }
     }
     get algorithmChoosed() {
         return algorithmOptions[this.choosedAlgorithmIndex];

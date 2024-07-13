@@ -42,6 +42,9 @@ class Main {
     )!;
     private domCanvas = document.querySelector("body > .canvas")!;
     private domModal = document.querySelector("body > .modal")!;
+    private domModalTutorialMain = document.querySelector(
+        "body > .modal > .main.tutorial"
+    )!;
     private domModalExplainAlgoMain = document.querySelector(
         "body > .modal > .main.explain-algorithm"
     )!;
@@ -51,6 +54,8 @@ class Main {
     private domModalSettingsMain = document.querySelector(
         "body > .modal > .main.settings"
     )!;
+    private tutorialLocalStorageKey = "not-show-tutorial";
+    private tutorialStepIndex: number;
     private choosedAlgorithmIndex: number;
     private cellSize: CellSizeOption;
     private speed: SpeedOption;
@@ -64,6 +69,7 @@ class Main {
     private target: Cell;
 
     public constructor() {
+        this.tutorialStepIndex = 0;
         this.choosedAlgorithmIndex = 0;
         this.cellSize = "l";
         this.speed = "fast";
@@ -95,6 +101,26 @@ class Main {
             "resize",
             throttle(() => window.location.reload(), 100)
         );
+        if (!window.localStorage.getItem(this.tutorialLocalStorageKey)) {
+            this.domModalTutorialMain.setAttribute(
+                "data-order",
+                `${this.tutorialStepIndex}`
+            );
+            this.domModalTutorialMain
+                .querySelector(`.body[data-order='${this.tutorialStepIndex}']`)
+                ?.classList.add("active");
+            this.domModal.classList.add("active");
+            this.domModalTutorialMain.classList.add("active");
+            this.domModalTutorialMain
+                .querySelector(".footer > .do-not-show > input")
+                ?.addEventListener("click", this.onClickTutorialDoNotShow);
+            this.domModalTutorialMain
+                .querySelector(".footer > .button-container > .discard")
+                ?.addEventListener("click", this.onClickTutorialSkip);
+            this.domModalTutorialMain
+                .querySelector(".footer > .button-container > .confirm")
+                ?.addEventListener("click", this.onClickTutorialNext);
+        }
     }
     private get algorithmChoosed(): AlgorithmOption {
         return algorithmOptions[this.choosedAlgorithmIndex];
@@ -128,6 +154,36 @@ class Main {
         this.target = this.grid[rowCount - 1][colCount - 1].setTarget();
         this.algorithmObject = undefined;
     }
+    private onClickTutorialDoNotShow = (e: Event): void => {
+        if ((e.currentTarget as HTMLInputElement).checked) {
+            window.localStorage.setItem(this.tutorialLocalStorageKey, "1");
+        } else window.localStorage.removeItem(this.tutorialLocalStorageKey);
+    };
+    private onClickTutorialNext = (): void => {
+        if (this.tutorialStepIndex == 3) this.onClickTutorialSkip();
+        else {
+            this.domModalTutorialMain
+                .querySelector(`.body[data-order='${this.tutorialStepIndex}']`)
+                ?.classList.remove("active");
+            this.tutorialStepIndex += 1;
+            this.domModalTutorialMain.setAttribute(
+                "data-order",
+                `${this.tutorialStepIndex}`
+            );
+            this.domModalTutorialMain
+                .querySelector(`.body[data-order='${this.tutorialStepIndex}']`)
+                ?.classList.add("active");
+            if (this.tutorialStepIndex == 3) {
+                this.domModalTutorialMain.querySelector(
+                    ".footer > .button-container > .confirm"
+                )!.innerHTML = "Close";
+            }
+        }
+    };
+    private onClickTutorialSkip = (): void => {
+        this.domModal.classList.remove("active");
+        this.domModalTutorialMain.classList.remove("active");
+    };
     private onClickPrevAlgoButton = (): void => {
         // TODO: If visualized, show alert.
         this.choosedAlgorithmIndex--;
@@ -143,13 +199,12 @@ class Main {
         this.domModalExplainAlgoMain.classList.add("active");
         this.domModalExplainAlgoMain.querySelector(".body")!.textContent =
             this.algorithmChoosed.explanation;
-        const confirmButton = this.domModalExplainAlgoMain.querySelector(
-            ".footer > .button.confirm"
-        )!;
-        confirmButton.addEventListener("click", () => {
-            this.domModal.classList.remove("active");
-            this.domModalExplainAlgoMain.classList.remove("active");
-        });
+        this.domModalExplainAlgoMain
+            .querySelector(".footer > .button.confirm-fill")!
+            .addEventListener("click", () => {
+                this.domModal.classList.remove("active");
+                this.domModalExplainAlgoMain.classList.remove("active");
+            });
     };
     private onClickVisualizeButton = async (): Promise<void> => {
         this.cleanExploreResult();
@@ -268,22 +323,21 @@ class Main {
         });
         if (this.cleanMode === "retain-the-wall") leftOption.checked = true;
         else rightOption.checked = true;
-        const discardButton = this.domModalCleanOptionsMain.querySelector(
-            ".footer > .button.discard"
-        )!;
-        const confirmButton = this.domModalCleanOptionsMain.querySelector(
-            ".footer > .button.confirm"
-        )!;
-        discardButton.addEventListener("click", () => {
-            this.domModal.classList.remove("active");
-            this.domModalCleanOptionsMain.classList.remove("active");
-        });
-        confirmButton.addEventListener("click", () => {
-            if (this.cleanMode === "retain-the-wall") this.cleanExploreResult();
-            else this.cleanAll();
-            this.domModal.classList.remove("active");
-            this.domModalCleanOptionsMain.classList.remove("active");
-        });
+        this.domModalCleanOptionsMain
+            .querySelector(".footer > .button.discard")!
+            .addEventListener("click", () => {
+                this.domModal.classList.remove("active");
+                this.domModalCleanOptionsMain.classList.remove("active");
+            });
+        this.domModalCleanOptionsMain
+            .querySelector(".footer > .button.confirm-fill")!
+            .addEventListener("click", () => {
+                if (this.cleanMode === "retain-the-wall") {
+                    this.cleanExploreResult();
+                } else this.cleanAll();
+                this.domModal.classList.remove("active");
+                this.domModalCleanOptionsMain.classList.remove("active");
+            });
     };
     private onClickGenMazeButton = (): void => {
         this.cleanAll();
@@ -303,6 +357,7 @@ class Main {
             if (this.cellSize === domInput.value) domInput.checked = true;
             dom.addEventListener("click", () => {
                 newCellSize = domInput.value as CellSizeOption;
+                domInput.checked = true;
             });
         }
         const domSpeedOptionContainers: NodeListOf<HTMLElement> =
@@ -314,6 +369,7 @@ class Main {
             if (this.speed === domInput.value) domInput.checked = true;
             dom.addEventListener("click", () => {
                 newSpeed = domInput.value as SpeedOption;
+                domInput.checked = true;
             });
         }
         this.domModalSettingsMain
@@ -323,7 +379,7 @@ class Main {
                 this.domModalSettingsMain.classList.remove("active");
             });
         this.domModalSettingsMain
-            .querySelector(".footer > .button.confirm")!
+            .querySelector(".footer > .button.confirm-fill")!
             .addEventListener("click", () => {
                 this.cellSize = newCellSize;
                 this.speed = newSpeed;
