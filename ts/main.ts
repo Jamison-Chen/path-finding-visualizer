@@ -64,7 +64,7 @@ class Main {
     private isMovingSource: boolean;
     private isMovingTarget: boolean;
     private grid: Cell[][];
-    private algorithmObject: PathFindingAlgorithm | undefined;
+    private algorithm: PathFindingAlgorithm | undefined;
     private source: Cell;
     private target: Cell;
 
@@ -122,7 +122,7 @@ class Main {
                 ?.addEventListener("click", this.onClickTutorialNext);
         }
     }
-    private get algorithmChoosed(): AlgorithmOption {
+    private get algorithmClass(): AlgorithmOption {
         return algorithmOptions[this.choosedAlgorithmIndex];
     }
     private initCanvas(): void {
@@ -152,7 +152,7 @@ class Main {
         }
         this.source = this.grid[0][0].setSource();
         this.target = this.grid[rowCount - 1][colCount - 1].setTarget();
-        this.algorithmObject = undefined;
+        this.algorithm = undefined;
     }
     private onClickTutorialDoNotShow = (e: Event): void => {
         if ((e.currentTarget as HTMLInputElement).checked) {
@@ -198,7 +198,7 @@ class Main {
         this.domModal.classList.add("active");
         this.domModalExplainAlgoMain.classList.add("active");
         this.domModalExplainAlgoMain.querySelector(".body")!.textContent =
-            this.algorithmChoosed.explanation;
+            this.algorithmClass.explanation;
         this.domModalExplainAlgoMain
             .querySelector(".footer > .button.confirm-fill")!
             .addEventListener("click", () => {
@@ -260,12 +260,13 @@ class Main {
             }
         }
 
-        this.algorithmObject = new this.algorithmChoosed(
+        this.algorithm = new this.algorithmClass(
+            this.source,
             this.grid,
             this.speed === "slow" ? 250 : this.speed === "normal" ? 80 : 0
         );
-        await this.algorithmObject?.execute();
-        await this.algorithmObject?.showPath(this.target, false, 0);
+        await this.algorithm?.execute();
+        await this.algorithm?.showPath(this.target, false);
 
         // Enable all buttons
         this.onChangeAlgorithm();
@@ -411,19 +412,19 @@ class Main {
                         this.source.backToPrevState();
                         this.source = cell.setSource();
                         this.cleanPath();
-                        this.algorithmObject = undefined;
+                        this.algorithm = undefined;
                     } else if (this.isMovingTarget && !cell.isSource) {
                         this.target.backToPrevState();
                         this.target = cell.setTarget();
                         this.cleanPath();
-                        this.algorithmObject?.showPath(this.target, true, 0);
+                        this.algorithm?.showPath(this.target, true);
                     }
                 }
             }
         };
     };
     private onChangeAlgorithm(): void {
-        this.domAlgorithmText.textContent = this.algorithmChoosed.algorithmName;
+        this.domAlgorithmText.textContent = this.algorithmClass.algorithmName;
         if (this.choosedAlgorithmIndex === 0) {
             this.domPrevAlgoButton.classList.add("disabled");
             this.domPrevAlgoButton.removeEventListener(
@@ -471,7 +472,7 @@ class Main {
                 }
             }
         }
-        this.algorithmObject = undefined;
+        this.algorithm = undefined;
     }
     private cleanAll(): void {
         for (let row of this.grid) {
@@ -479,7 +480,7 @@ class Main {
                 if (!cell.isSource && !cell.isTarget) cell.setBlank();
             }
         }
-        this.algorithmObject = undefined;
+        this.algorithm = undefined;
     }
 }
 

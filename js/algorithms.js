@@ -1,16 +1,12 @@
 import Graph from "./graph.js";
 export class Dijkstra {
-    constructor(grid, delayMs = 0) {
+    constructor(source, grid, delayMs = 0) {
         this.graph = new Graph(grid);
-        const flattenGrid = [...grid.flat()];
-        const source = flattenGrid.find((cell) => cell.isSource);
-        if (source === undefined)
-            throw Error("Source is not defined.");
-        this.unsolvedCells = flattenGrid.filter((cell) => !cell.isSource);
+        this.unsolved = grid.flat().filter((cell) => !cell.isSource);
         this.pathFromSourceTo = { [source.id]: [source] };
         this.distanceFromSourceTo = { [source.id]: 0 };
-        this.unsolvedCells.forEach((cell) => {
-            const cost = this.graph.getCost(cell, source);
+        this.unsolved.forEach((cell) => {
+            const cost = this.graph.getNeighborCost(cell, source);
             if (cost !== Infinity) {
                 this.distanceFromSourceTo[cell.id] = cost;
                 this.pathFromSourceTo[cell.id] = [source, cell];
@@ -20,63 +16,50 @@ export class Dijkstra {
     }
     execute() {
         return new Promise((resolve) => {
-            const minUnsolvedDistance = Math.min(...this.unsolvedCells.map((cell) => {
-                return cell.id in this.distanceFromSourceTo
-                    ? this.distanceFromSourceTo[cell.id]
-                    : Infinity;
+            const minUnsolvedDistance = Math.min(...this.unsolved.map((cell) => {
+                return this.distanceFromSourceTo[cell.id] ?? Infinity;
             }));
             if (minUnsolvedDistance < Infinity && !isNaN(minUnsolvedDistance)) {
-                const cellsToSolve = this.unsolvedCells.filter((c) => this.distanceFromSourceTo[c.id] === minUnsolvedDistance);
-                this.unsolvedCells = this.unsolvedCells.filter((c) => this.distanceFromSourceTo[c.id] !== minUnsolvedDistance);
-                for (let w of cellsToSolve) {
+                for (let w of this.unsolved.filter((c) => this.distanceFromSourceTo[c.id] === minUnsolvedDistance)) {
                     w.setExplored();
-                    if (w.isTarget) {
-                        resolve();
-                        return;
-                    }
-                    else {
-                        for (let v of Object.values(this.graph.graph[w.id].neighbors).map((e) => e.node)) {
-                            const oldDistance = v.id in this.distanceFromSourceTo
-                                ? this.distanceFromSourceTo[v.id]
-                                : Infinity;
-                            const newDistance = Math.min(oldDistance, minUnsolvedDistance + this.graph.getCost(w, v));
-                            if (newDistance !== Infinity) {
-                                if (newDistance < oldDistance) {
-                                    this.distanceFromSourceTo[v.id] =
-                                        newDistance;
-                                    this.pathFromSourceTo[v.id] = [
-                                        ...(this.pathFromSourceTo[w.id] || []),
-                                        v,
-                                    ];
-                                }
-                            }
+                    if (w.isTarget)
+                        return resolve();
+                    for (let v of Object.values(this.graph.get(w.id).neighbors).map((e) => e.node)) {
+                        const oldDistance = this.distanceFromSourceTo[v.id] ?? Infinity;
+                        const newDistance = minUnsolvedDistance +
+                            this.graph.getNeighborCost(w, v);
+                        if (newDistance !== Infinity &&
+                            newDistance < oldDistance) {
+                            this.distanceFromSourceTo[v.id] = newDistance;
+                            this.pathFromSourceTo[v.id] = [
+                                ...(this.pathFromSourceTo[w.id] ?? []),
+                                v,
+                            ];
                         }
                     }
                 }
-                if (this.unsolvedCells.length > 0) {
+                this.unsolved = this.unsolved.filter((c) => this.distanceFromSourceTo[c.id] !== minUnsolvedDistance);
+                if (this.unsolved.length > 0) {
                     setTimeout(() => resolve(this.execute()), this.delayMs);
                     return;
                 }
             }
-            resolve();
-            return;
+            return resolve();
         });
     }
     showPath(target, instant = false, currentIndex = 0) {
         if (!(target.id in this.pathFromSourceTo))
             return;
         const path = this.pathFromSourceTo[target.id];
-        if (instant) {
-            for (let cell of path)
-                cell.setShortestPath();
-        }
+        if (instant)
+            path.forEach((cell) => cell.setShortestPath());
         else {
             return new Promise((resolve) => {
                 if (currentIndex < path.length) {
                     path[currentIndex].setShortestPath();
                     setTimeout(() => {
                         resolve(this.showPath(target, instant, currentIndex + 1));
-                    }, 5);
+                    }, this.delayMs);
                 }
                 else
                     resolve();

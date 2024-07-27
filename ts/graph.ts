@@ -1,43 +1,53 @@
-export default class Graph<T extends { id: string; isWall: boolean }> {
-    public graph: {
+type Edge<Node extends { id: string; isWall: boolean }> = {
+    n1: Node;
+    n2: Node;
+    cost: number;
+};
+
+export default class Graph<Node extends { id: string; isWall: boolean }> {
+    private graph: {
         [id: string]: {
-            node: T;
-            neighbors: { [id: string]: { node: T; cost: number } };
+            node: Node;
+            neighbors: { [id: string]: { node: Node; cost: number } };
         };
     };
-    public constructor(grid: T[][]) {
+    public constructor(grid: Node[][]) {
         this.graph = {};
-        const graphInfo = this.gridToGraphInfo(grid);
-        graphInfo.nodes.forEach((node) => this.addNode(node));
-        graphInfo.edgesAndCosts.forEach((each) => this.addEdge(each));
+        this.build(grid);
     }
-    private gridToGraphInfo(grid: T[][]): {
-        nodes: T[];
-        edgesAndCosts: { n1: T; n2: T; cost: number }[];
-    } {
-        const h: number = grid.length;
-        const w: number = grid[0].length;
-        const n: T[] = [];
-        const e: { n1: T; n2: T; cost: number }[] = [];
+    private build(grid: Node[][]): void {
+        const h = grid.length;
+        const w = grid[0].length;
+        const nodes: Node[] = [];
+        const edges: Edge<Node>[] = [];
         for (let i = 0; i < h; i++) {
             for (let j = 0; j < w; j++) {
                 if (!grid[i][j].isWall) {
-                    n.push(grid[i][j]);
+                    nodes.push(grid[i][j]);
                     if (j + 1 < w && !grid[i][j + 1].isWall) {
-                        e.push({ n1: grid[i][j], n2: grid[i][j + 1], cost: 1 });
+                        edges.push({
+                            n1: grid[i][j],
+                            n2: grid[i][j + 1],
+                            cost: 1,
+                        });
                     }
                     if (i + 1 < h && !grid[i + 1][j].isWall) {
-                        e.push({ n1: grid[i][j], n2: grid[i + 1][j], cost: 1 });
+                        edges.push({
+                            n1: grid[i][j],
+                            n2: grid[i + 1][j],
+                            cost: 1,
+                        });
                     }
                 }
             }
         }
-        return { nodes: n, edgesAndCosts: e };
+        nodes.forEach((node) => this.addNode(node));
+        edges.forEach((edge) => this.addEdge(edge));
     }
-    private addNode(node: T): void {
+    private addNode(node: Node): void {
         this.graph[node.id] = { node: node, neighbors: {} };
     }
-    private addEdge(edge: { n1: T; n2: T; cost: number }): void {
+    private addEdge(edge: Edge<Node>): void {
         this.graph[edge.n1.id].neighbors[edge.n2.id] = {
             node: edge.n2,
             cost: edge.cost,
@@ -47,7 +57,16 @@ export default class Graph<T extends { id: string; isWall: boolean }> {
             cost: edge.cost,
         };
     }
-    public getCost(n1: T, n2: T): number {
+    public get(id: string): {
+        node: Node;
+        neighbors: { [id: string]: { node: Node; cost: number } };
+    } {
+        return this.graph[id];
+    }
+    public get keys(): string[] {
+        return Object.keys(this.graph);
+    }
+    public getNeighborCost(n1: Node, n2: Node): number {
         if (n1.id === n2.id) return 0;
         return this.graph[n1.id]?.neighbors[n2.id]?.cost || Infinity;
     }

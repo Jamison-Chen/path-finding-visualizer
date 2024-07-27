@@ -32,11 +32,10 @@ export default class Maze {
             const path = [currentNode];
             let tempNode = currentNode;
             while (!UST.some((node) => node.id === tempNode.id)) {
-                const randomIdx = (Object.keys(mazeGraph.graph[tempNode.id].neighbors)
-                    .length *
+                const randomIdx = (Object.keys(mazeGraph.get(tempNode.id).neighbors).length *
                     Math.random()) <<
                     0;
-                const randomNeighbor = Object.values(mazeGraph.graph[tempNode.id].neighbors)[randomIdx].node;
+                const randomNeighbor = Object.values(mazeGraph.get(tempNode.id).neighbors)[randomIdx].node;
                 path.push(randomNeighbor);
                 tempNode = randomNeighbor;
             }
@@ -51,8 +50,8 @@ export default class Maze {
             for (let i = 0; i < path.length; i++) {
                 mazeNodes = mazeNodes.filter((node) => node.id !== path[i].id);
                 if (i !== path.length - 1) {
-                    mazeGraph.graph[path[i].id].neighbors[path[i + 1].id].cost = 0;
-                    mazeGraph.graph[path[i + 1].id].neighbors[path[i].id].cost = 0;
+                    mazeGraph.get(path[i].id).neighbors[path[i + 1].id].cost = 0;
+                    mazeGraph.get(path[i + 1].id).neighbors[path[i].id].cost = 0;
                     UST.push(path[i]);
                 }
             }
@@ -60,14 +59,14 @@ export default class Maze {
         return mazeGraph;
     }
     static pruneMazeWall(mazeGraph, grid) {
-        for (let i in mazeGraph.graph) {
-            for (let j in mazeGraph.graph[i].neighbors) {
-                if (mazeGraph.graph[i].neighbors[j].cost === 0) {
+        for (let i of mazeGraph.keys) {
+            for (let j in mazeGraph.get(i).neighbors) {
+                if (mazeGraph.get(i).neighbors[j].cost === 0) {
                     const iPlusJ = {
-                        row: mazeGraph.graph[i].node.position.row +
-                            mazeGraph.graph[i].neighbors[j].node.position.row,
-                        col: mazeGraph.graph[i].node.position.col +
-                            mazeGraph.graph[i].neighbors[j].node.position.col,
+                        row: mazeGraph.get(i).node.position.row +
+                            mazeGraph.get(i).neighbors[j].node.position.row,
+                        col: mazeGraph.get(i).node.position.col +
+                            mazeGraph.get(i).neighbors[j].node.position.col,
                     };
                     if (iPlusJ.row < grid.length &&
                         iPlusJ.col < grid[0].length &&
