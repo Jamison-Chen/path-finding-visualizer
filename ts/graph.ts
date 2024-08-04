@@ -1,14 +1,21 @@
-type Edge<Node extends { id: string; isWall: boolean }> = {
-    n1: Node;
-    n2: Node;
+type BaseNode = { id: string; isWall: boolean };
+
+type Edge<T extends BaseNode> = {
+    n1: T;
+    n2: T;
     cost: number;
 };
 
-export default class Graph<Node extends { id: string; isWall: boolean }> {
+type Neighbor<T extends BaseNode> = {
+    node: T;
+    cost: number;
+};
+
+export default class Graph<Node extends BaseNode> {
     private graph: {
         [id: string]: {
             node: Node;
-            neighbors: { [id: string]: { node: Node; cost: number } };
+            neighbors: { [id: string]: Neighbor<Node> };
         };
     };
     public constructor(grid: Node[][]) {

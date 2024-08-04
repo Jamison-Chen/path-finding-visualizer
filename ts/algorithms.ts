@@ -47,22 +47,18 @@ export class Dijkstra implements PathFindingAlgorithm {
                 )) {
                     w.setExplored();
                     if (w.isTarget) return resolve();
-                    for (let v of Object.values(
+                    for (const v of Object.values(
                         this.graph.get(w.id).neighbors
-                    ).map((e) => e.node)) {
-                        const oldDistance =
-                            this.distanceFromSourceTo[v.id] ?? Infinity;
-                        const newDistance =
-                            minUnsolvedDistance +
-                            this.graph.getNeighborCost(w, v);
+                    )) {
+                        const newDistance = minUnsolvedDistance + v.cost;
                         if (
-                            newDistance !== Infinity &&
-                            newDistance < oldDistance
+                            newDistance <
+                            (this.distanceFromSourceTo[v.node.id] ?? Infinity)
                         ) {
-                            this.distanceFromSourceTo[v.id] = newDistance;
-                            this.pathFromSourceTo[v.id] = [
+                            this.distanceFromSourceTo[v.node.id] = newDistance;
+                            this.pathFromSourceTo[v.node.id] = [
                                 ...(this.pathFromSourceTo[w.id] ?? []),
-                                v,
+                                v.node,
                             ];
                         }
                     }

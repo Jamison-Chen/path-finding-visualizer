@@ -265,7 +265,9 @@ class Main {
             this.grid,
             this.speed === "slow" ? 250 : this.speed === "normal" ? 80 : 0
         );
+        const start = Date.now();
         await this.algorithm?.execute();
+        console.log(Date.now() - start);
         await this.algorithm?.showPath(this.target, false);
 
         // Enable all buttons
