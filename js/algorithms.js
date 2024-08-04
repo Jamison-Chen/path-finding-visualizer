@@ -1,46 +1,38 @@
 import Graph from "./graph.js";
+import MinHeap from "./heap.js";
 export class Dijkstra {
     constructor(source, grid, delayMs = 0) {
         this.graph = new Graph(grid);
-        this.unsolved = grid.flat().filter((cell) => !cell.isSource);
+        this.unsolvedHeap = new MinHeap([[source, 0]], (e) => e[1]);
+        this.delayMs = delayMs;
         this.pathFromSourceTo = { [source.id]: [source] };
         this.distanceFromSourceTo = { [source.id]: 0 };
-        this.unsolved.forEach((cell) => {
-            const cost = this.graph.getNeighborCost(cell, source);
-            if (cost !== Infinity) {
-                this.distanceFromSourceTo[cell.id] = cost;
-                this.pathFromSourceTo[cell.id] = [source, cell];
-            }
-        });
-        this.delayMs = delayMs;
     }
     execute() {
         return new Promise((resolve) => {
-            const minUnsolvedDistance = Math.min(...this.unsolved.map((cell) => {
-                return this.distanceFromSourceTo[cell.id] ?? Infinity;
-            }));
-            if (minUnsolvedDistance < Infinity && !isNaN(minUnsolvedDistance)) {
-                for (let w of this.unsolved.filter((c) => this.distanceFromSourceTo[c.id] === minUnsolvedDistance)) {
-                    w.setExplored();
-                    if (w.isTarget)
-                        return resolve();
-                    for (const v of Object.values(this.graph.get(w.id).neighbors)) {
-                        const newDistance = minUnsolvedDistance + v.cost;
-                        if (newDistance <
-                            (this.distanceFromSourceTo[v.node.id] ?? Infinity)) {
-                            this.distanceFromSourceTo[v.node.id] = newDistance;
-                            this.pathFromSourceTo[v.node.id] = [
-                                ...(this.pathFromSourceTo[w.id] ?? []),
-                                v.node,
-                            ];
-                        }
+            const minUnsolvedDistance = this.unsolvedHeap.peek()[1];
+            while (this.unsolvedHeap.size > 0 &&
+                this.unsolvedHeap.peek()[1] === minUnsolvedDistance) {
+                const w = this.unsolvedHeap.pop()[0];
+                w.setExplored();
+                if (w.isTarget)
+                    return resolve();
+                for (const { node, cost } of Object.values(this.graph.get(w.id).neighbors)) {
+                    const newDistance = minUnsolvedDistance + cost;
+                    if (newDistance <
+                        (this.distanceFromSourceTo[node.id] ?? Infinity)) {
+                        this.distanceFromSourceTo[node.id] = newDistance;
+                        this.pathFromSourceTo[node.id] = [
+                            ...(this.pathFromSourceTo[w.id] ?? []),
+                            node,
+                        ];
+                        this.unsolvedHeap.push([node, newDistance]);
                     }
                 }
-                this.unsolved = this.unsolved.filter((c) => this.distanceFromSourceTo[c.id] !== minUnsolvedDistance);
-                if (this.unsolved.length > 0) {
-                    setTimeout(() => resolve(this.execute()), this.delayMs);
-                    return;
-                }
+            }
+            if (this.unsolvedHeap.size > 0) {
+                setTimeout(() => resolve(this.execute()), this.delayMs);
+                return;
             }
             return resolve();
         });

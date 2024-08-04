@@ -1,7 +1,7 @@
 export default class MinHeap {
     constructor(arr, keyFunction) {
         this.keyFunction = keyFunction;
-        this.heap = new Array(arr.length);
+        this.heap = [];
         let depth = Math.floor(Math.log2(arr.length));
         while (arr.length > 0) {
             for (let i = 2 ** depth - 1; i < arr.length; i++) {
@@ -50,7 +50,8 @@ export default class MinHeap {
     upHeap(startIndex) {
         while (startIndex > 0) {
             const parentIndex = Math.floor((startIndex - 1) / 2);
-            if (this.heap[startIndex] < this.heap[parentIndex]) {
+            if (this.keyFunction(this.heap[startIndex]) <
+                this.keyFunction(this.heap[parentIndex])) {
                 [this.heap[startIndex], this.heap[parentIndex]] = [
                     this.heap[parentIndex],
                     this.heap[startIndex],
@@ -74,5 +75,11 @@ export default class MinHeap {
         this.heap[0] = this.heap.pop();
         this.downHeap(0);
         return result;
+    }
+    peek() {
+        return this.heap[0];
+    }
+    get size() {
+        return this.heap.length;
     }
 }

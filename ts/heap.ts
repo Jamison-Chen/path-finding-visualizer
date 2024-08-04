@@ -3,7 +3,7 @@ export default class MinHeap<T> {
     private keyFunction: (el: T) => number;
     public constructor(arr: T[], keyFunction: (el: T) => number) {
         this.keyFunction = keyFunction;
-        this.heap = new Array(arr.length);
+        this.heap = [];
         let depth = Math.floor(Math.log2(arr.length));
         while (arr.length > 0) {
             for (let i = 2 ** depth - 1; i < arr.length; i++) {
@@ -46,7 +46,10 @@ export default class MinHeap<T> {
     private upHeap(startIndex: number): void {
         while (startIndex > 0) {
             const parentIndex = Math.floor((startIndex - 1) / 2);
-            if (this.heap[startIndex] < this.heap[parentIndex]) {
+            if (
+                this.keyFunction(this.heap[startIndex]) <
+                this.keyFunction(this.heap[parentIndex])
+            ) {
                 [this.heap[startIndex], this.heap[parentIndex]] = [
                     this.heap[parentIndex],
                     this.heap[startIndex],
@@ -66,5 +69,11 @@ export default class MinHeap<T> {
         this.heap[0] = this.heap.pop()!;
         this.downHeap(0);
         return result;
+    }
+    public peek(): T {
+        return this.heap[0];
+    }
+    public get size(): number {
+        return this.heap.length;
     }
 }
