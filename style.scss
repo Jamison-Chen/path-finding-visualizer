@@ -392,7 +392,6 @@ body {
     position: relative;
     color: $gray;
     transition-duration: 150ms;
-    overflow: hidden;
     @media (hover: hover) {
         &:not(.disabled) {
             &:hover {
@@ -403,6 +402,7 @@ body {
                     left: 0;
                     height: 100%;
                     width: 100%;
+                    border-radius: 8px;
                     background-color: $transparent-black;
                 }
             }
