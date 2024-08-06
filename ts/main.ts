@@ -241,8 +241,8 @@ class Main {
             this.onClickSettingsButton
         );
         document.removeEventListener("mouseup", this.onMouseUp);
-        for (let row of this.grid) {
-            for (let cell of row) {
+        for (const row of this.grid) {
+            for (const cell of row) {
                 if (cell.mouseEnterEventListener) {
                     cell.div.removeEventListener(
                         "mouseenter",
@@ -288,8 +288,8 @@ class Main {
             this.onClickSettingsButton
         );
         document.addEventListener("mouseup", this.onMouseUp);
-        for (let row of this.grid) {
-            for (let cell of row) {
+        for (const row of this.grid) {
+            for (const cell of row) {
                 const el1 = this.onMouseEnter(cell);
                 cell.div.addEventListener("mouseenter", el1);
                 cell.mouseEnterEventListener = el1;
@@ -353,7 +353,7 @@ class Main {
             this.domModalSettingsMain.querySelectorAll(
                 ".body > .row.cell-size > .options > .option-container"
             )!;
-        for (let dom of domCellSizeOptionContainers) {
+        for (const dom of domCellSizeOptionContainers) {
             const domInput: HTMLInputElement = dom.querySelector("input")!;
             if (this.cellSize === domInput.value) domInput.checked = true;
             dom.addEventListener("click", () => {
@@ -365,7 +365,7 @@ class Main {
             this.domModalSettingsMain.querySelectorAll(
                 ".body > .row.speed > .options > .option-container"
             )!;
-        for (let dom of domSpeedOptionContainers) {
+        for (const dom of domSpeedOptionContainers) {
             const domInput: HTMLInputElement = dom.querySelector("input")!;
             if (this.speed === domInput.value) domInput.checked = true;
             dom.addEventListener("click", () => {
@@ -453,15 +453,15 @@ class Main {
         }
     }
     private cleanPath(): void {
-        for (let row of this.grid) {
-            for (let cell of row) {
+        for (const row of this.grid) {
+            for (const cell of row) {
                 if (cell.isShortestPath) cell.setExplored();
             }
         }
     }
     private cleanExploreResult(): void {
-        for (let row of this.grid) {
-            for (let cell of row) {
+        for (const row of this.grid) {
+            for (const cell of row) {
                 if (
                     !cell.isWall &&
                     !cell.isSource &&
@@ -475,8 +475,8 @@ class Main {
         this.algorithm = undefined;
     }
     private cleanAll(): void {
-        for (let row of this.grid) {
-            for (let cell of row) {
+        for (const row of this.grid) {
+            for (const cell of row) {
                 if (!cell.isSource && !cell.isTarget) cell.setBlank();
             }
         }

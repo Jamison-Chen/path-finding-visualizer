@@ -1,8 +1,8 @@
 import Graph from "./graph.js";
 export default class Maze {
     static createMaze(grid) {
-        for (let row of grid) {
-            for (let cell of row) {
+        for (const row of grid) {
+            for (const cell of row) {
                 if (cell.position.row % 2 !== 0 ||
                     cell.position.col % 2 !== 0) {
                     cell.setWall();
@@ -59,8 +59,8 @@ export default class Maze {
         return mazeGraph;
     }
     static pruneMazeWall(mazeGraph, grid) {
-        for (let i of mazeGraph.keys) {
-            for (let j in mazeGraph.get(i).neighbors) {
+        for (const i of mazeGraph.keys) {
+            for (const j in mazeGraph.get(i).neighbors) {
                 if (mazeGraph.get(i).neighbors[j].cost === 0) {
                     const iPlusJ = {
                         row: mazeGraph.get(i).node.position.row +

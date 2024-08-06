@@ -87,8 +87,8 @@ class Main {
             this.domSettingsButton.classList.add("disabled");
             this.domSettingsButton.removeEventListener("click", this.onClickSettingsButton);
             document.removeEventListener("mouseup", this.onMouseUp);
-            for (let row of this.grid) {
-                for (let cell of row) {
+            for (const row of this.grid) {
+                for (const cell of row) {
                     if (cell.mouseEnterEventListener) {
                         cell.div.removeEventListener("mouseenter", cell.mouseEnterEventListener);
                     }
@@ -112,8 +112,8 @@ class Main {
             this.domSettingsButton.classList.remove("disabled");
             this.domSettingsButton.addEventListener("click", this.onClickSettingsButton);
             document.addEventListener("mouseup", this.onMouseUp);
-            for (let row of this.grid) {
-                for (let cell of row) {
+            for (const row of this.grid) {
+                for (const cell of row) {
                     const el1 = this.onMouseEnter(cell);
                     cell.div.addEventListener("mouseenter", el1);
                     cell.mouseEnterEventListener = el1;
@@ -172,7 +172,7 @@ class Main {
             let newCellSize = this.cellSize;
             let newSpeed = this.speed;
             const domCellSizeOptionContainers = this.domModalSettingsMain.querySelectorAll(".body > .row.cell-size > .options > .option-container");
-            for (let dom of domCellSizeOptionContainers) {
+            for (const dom of domCellSizeOptionContainers) {
                 const domInput = dom.querySelector("input");
                 if (this.cellSize === domInput.value)
                     domInput.checked = true;
@@ -182,7 +182,7 @@ class Main {
                 });
             }
             const domSpeedOptionContainers = this.domModalSettingsMain.querySelectorAll(".body > .row.speed > .options > .option-container");
-            for (let dom of domSpeedOptionContainers) {
+            for (const dom of domSpeedOptionContainers) {
                 const domInput = dom.querySelector("input");
                 if (this.speed === domInput.value)
                     domInput.checked = true;
@@ -338,16 +338,16 @@ class Main {
         }
     }
     cleanPath() {
-        for (let row of this.grid) {
-            for (let cell of row) {
+        for (const row of this.grid) {
+            for (const cell of row) {
                 if (cell.isShortestPath)
                     cell.setExplored();
             }
         }
     }
     cleanExploreResult() {
-        for (let row of this.grid) {
-            for (let cell of row) {
+        for (const row of this.grid) {
+            for (const cell of row) {
                 if (!cell.isWall &&
                     !cell.isSource &&
                     !cell.isTarget &&
@@ -359,8 +359,8 @@ class Main {
         this.algorithm = undefined;
     }
     cleanAll() {
-        for (let row of this.grid) {
-            for (let cell of row) {
+        for (const row of this.grid) {
+            for (const cell of row) {
                 if (!cell.isSource && !cell.isTarget)
                     cell.setBlank();
             }

@@ -9,8 +9,8 @@ interface MazeNode {
 
 export default class Maze {
     public static createMaze(grid: Cell[][]): Cell[][] {
-        for (let row of grid) {
-            for (let cell of row) {
+        for (const row of grid) {
+            for (const cell of row) {
                 if (
                     cell.position.row % 2 !== 0 ||
                     cell.position.col % 2 !== 0
@@ -85,8 +85,8 @@ export default class Maze {
         mazeGraph: Graph<MazeNode>,
         grid: Cell[][]
     ): Cell[][] {
-        for (let i of mazeGraph.keys) {
-            for (let j in mazeGraph.get(i).neighbors) {
+        for (const i of mazeGraph.keys) {
+            for (const j in mazeGraph.get(i).neighbors) {
                 if (mazeGraph.get(i).neighbors[j].cost === 0) {
                     const iPlusJ = {
                         row:
