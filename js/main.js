@@ -1,12 +1,10 @@
-import { Dijkstra } from "./algorithms.js";
+import { AStar, Dijkstra } from "./algorithms.js";
 import Cell from "./cell.js";
 import Maze from "./maze.js";
 import { throttle } from "./utils.js";
 const cellSizeOptions = ["s", "m", "l"];
 const speedOptions = ["slow", "normal", "fast"];
-const algorithmOptions = [
-    Dijkstra,
-];
+const algorithmOptions = [Dijkstra, AStar];
 const cleanModeOptions = ["retain-the-wall", "clean-all"];
 class Main {
     constructor() {
@@ -55,10 +53,12 @@ class Main {
         this.onClickPrevAlgoButton = () => {
             this.choosedAlgorithmIndex--;
             this.onChangeAlgorithm();
+            this.cleanExploreResult();
         };
         this.onClickNextAlgoButton = () => {
             this.choosedAlgorithmIndex++;
             this.onChangeAlgorithm();
+            this.cleanExploreResult();
         };
         this.onClickAlgorithm = () => {
             this.domModal.classList.add("active");
@@ -99,7 +99,7 @@ class Main {
                     cell.mouseDownEventListener = undefined;
                 }
             }
-            this.algorithm = new this.algorithmClass(this.source, this.grid, this.speed === "slow" ? 250 : this.speed === "normal" ? 80 : 0);
+            this.algorithm = new this.algorithmClass(this.source, this.target, this.grid, this.speed === "slow" ? 250 : this.speed === "normal" ? 80 : 0);
             await this.algorithm?.execute();
             await this.algorithm?.showPath(this.target, false);
             this.onChangeAlgorithm();

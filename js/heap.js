@@ -19,7 +19,7 @@ export default class MinHeap {
             if (startIndex * 2 + 2 < this.heap.length) {
                 const r = startIndex * 2 + 2;
                 const keyRight = this.keyFunction(this.heap[r]);
-                if (keyLeft < keyRight && keyLeft < keyStart) {
+                if (keyLeft <= keyRight && keyLeft < keyStart) {
                     [this.heap[startIndex], this.heap[l]] = [
                         this.heap[l],
                         this.heap[startIndex],

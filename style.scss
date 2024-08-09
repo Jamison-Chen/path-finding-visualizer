@@ -221,13 +221,14 @@ body {
             position: absolute;
             top: 50%;
             left: 50%;
+            max-height: 95%;
             transform: translate(-50%, -50%);
             display: none;
             border-radius: 20px;
             background-color: $white;
             box-shadow: 0 0 10px 10px $transparent-black;
             max-width: 90%;
-            overflow: hidden;
+            overflow: auto;
             &.active {
                 display: initial;
             }

@@ -1,4 +1,4 @@
-import { Dijkstra, PathFindingAlgorithm } from "./algorithms.js";
+import { AStar, Dijkstra, PathFindingAlgorithm } from "./algorithms.js";
 import Cell from "./cell.js";
 import Maze from "./maze.js";
 import { throttle } from "./utils.js";
@@ -9,10 +9,7 @@ type CellSizeOption = (typeof cellSizeOptions)[number];
 const speedOptions = ["slow", "normal", "fast"] as const;
 type SpeedOption = (typeof speedOptions)[number];
 
-const algorithmOptions = [
-    Dijkstra,
-    // AStar,
-] as const;
+const algorithmOptions = [Dijkstra, AStar] as const;
 type AlgorithmOption = (typeof algorithmOptions)[number];
 
 const cleanModeOptions = ["retain-the-wall", "clean-all"] as const;
@@ -188,11 +185,13 @@ class Main {
         // TODO: If visualized, show alert.
         this.choosedAlgorithmIndex--;
         this.onChangeAlgorithm();
+        this.cleanExploreResult();
     };
     private onClickNextAlgoButton = (): void => {
         // TODO: If visualized, show alert.
         this.choosedAlgorithmIndex++;
         this.onChangeAlgorithm();
+        this.cleanExploreResult();
     };
     private onClickAlgorithm = (): void => {
         this.domModal.classList.add("active");
@@ -262,6 +261,7 @@ class Main {
 
         this.algorithm = new this.algorithmClass(
             this.source,
+            this.target,
             this.grid,
             this.speed === "slow" ? 250 : this.speed === "normal" ? 80 : 0
         );

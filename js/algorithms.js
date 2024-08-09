@@ -1,46 +1,23 @@
 import Graph from "./graph.js";
 import MinHeap from "./heap.js";
-export class Dijkstra {
-    constructor(source, grid, delayMs = 0) {
+export class PathFindingAlgorithm {
+    constructor(source, target, grid, delayMs = 0) {
+        this.source = source;
+        this.target = target;
         this.graph = new Graph(grid);
-        this.unsolvedHeap = new MinHeap([[source, 0]], (e) => e[1]);
-        this.delayMs = delayMs;
+        this.cameFrom = {};
+        this.costFromSourceTo = { [source.id]: 0 };
         this.pathFromSourceTo = { [source.id]: [source] };
-        this.distanceFromSourceTo = { [source.id]: 0 };
-    }
-    execute() {
-        return new Promise((resolve) => {
-            const minUnsolvedDistance = this.unsolvedHeap.peek()[1];
-            while (this.unsolvedHeap.size > 0 &&
-                this.unsolvedHeap.peek()[1] === minUnsolvedDistance) {
-                const w = this.unsolvedHeap.pop()[0];
-                w.setExplored();
-                if (w.isTarget)
-                    return resolve();
-                for (const { node, cost } of Object.values(this.graph.get(w.id).neighbors)) {
-                    const newDistance = minUnsolvedDistance + cost;
-                    if (newDistance <
-                        (this.distanceFromSourceTo[node.id] ?? Infinity)) {
-                        this.distanceFromSourceTo[node.id] = newDistance;
-                        this.pathFromSourceTo[node.id] = [
-                            ...(this.pathFromSourceTo[w.id] ?? []),
-                            node,
-                        ];
-                        this.unsolvedHeap.push([node, newDistance]);
-                    }
-                }
-            }
-            if (this.unsolvedHeap.size > 0) {
-                setTimeout(() => resolve(this.execute()), this.delayMs);
-                return;
-            }
-            return resolve();
-        });
+        this.delayMs = delayMs;
     }
     showPath(target, instant = false, currentIndex = 0) {
-        if (!(target.id in this.pathFromSourceTo))
+        this.target = target;
+        if (!(this.target.id in this.pathFromSourceTo)) {
+            this.computeAndStorePath(this.target);
+        }
+        if (!(this.target.id in this.pathFromSourceTo))
             return;
-        const path = this.pathFromSourceTo[target.id];
+        const path = this.pathFromSourceTo[this.target.id];
         if (instant)
             path.forEach((cell) => cell.setShortestPath());
         else {
@@ -48,7 +25,7 @@ export class Dijkstra {
                 if (currentIndex < path.length) {
                     path[currentIndex].setShortestPath();
                     setTimeout(() => {
-                        resolve(this.showPath(target, instant, currentIndex + 1));
+                        resolve(this.showPath(this.target, instant, currentIndex + 1));
                     }, this.delayMs);
                 }
                 else
@@ -56,15 +33,99 @@ export class Dijkstra {
             });
         }
     }
+    computeAndStorePath(toCell) {
+        const path = [];
+        let current = this.target;
+        while (current.id in this.cameFrom) {
+            path.push(current);
+            current = this.cameFrom[current.id];
+        }
+        path.push(this.source);
+        path.reverse();
+        if (path.length > 0)
+            this.pathFromSourceTo[toCell.id] = path;
+    }
+}
+export class Dijkstra extends PathFindingAlgorithm {
+    constructor(source, target, grid, delayMs = 0) {
+        super(source, target, grid, delayMs);
+        this.unsolvedHeap = new MinHeap([[source, 0]], (e) => e[1]);
+    }
+    execute() {
+        return new Promise((resolve) => {
+            if (this.unsolvedHeap.size > 0) {
+                const [current, costFromSourceToCurrent] = this.unsolvedHeap.pop();
+                current.setExplored();
+                if (current.isTarget)
+                    return resolve();
+                for (const { node: neighbor, cost: costFromCurrentToNeighbor, } of Object.values(this.graph.get(current.id).neighbors)) {
+                    const newCostFromSourceToNeighbor = costFromSourceToCurrent + costFromCurrentToNeighbor;
+                    if (newCostFromSourceToNeighbor <
+                        (this.costFromSourceTo[neighbor.id] ?? Infinity)) {
+                        this.costFromSourceTo[neighbor.id] =
+                            newCostFromSourceToNeighbor;
+                        this.cameFrom[neighbor.id] = current;
+                        this.unsolvedHeap.push([
+                            neighbor,
+                            newCostFromSourceToNeighbor,
+                        ]);
+                    }
+                }
+            }
+            if (this.unsolvedHeap.size > 0) {
+                return setTimeout(() => resolve(this.execute()), this.delayMs);
+            }
+            return resolve();
+        });
+    }
 }
 Dijkstra.algorithmName = "Dijkstra";
 Dijkstra.explanation = "Dijkstra algorithm works by initializing the starting node's distance to zero and all other nodes to infinity. Then, it repeatedly selects the unvisited node with the smallest known distance, updates the distances of its neighbors, and marks it as visited. This process continues until all nodes are visited or the shortest path to the target node is found.";
-export class AStar {
-    constructor() { }
-    execute() {
-        return new Promise(() => { });
+export class AStar extends PathFindingAlgorithm {
+    constructor(source, target, grid, delayMs = 0) {
+        super(source, target, grid, delayMs);
+        this.huristicCostToTarget = {};
+        this.huristicCostToTarget[source.id] =
+            this.getHuristicCostToTarget(source);
+        this.f = structuredClone(this.huristicCostToTarget);
+        this.unsolvedHeap = new MinHeap([[source, 0]], (e) => e[1]);
     }
-    showPath() {
+    execute() {
+        return new Promise((resolve) => {
+            if (this.unsolvedHeap.size > 0) {
+                const current = this.unsolvedHeap.pop()[0];
+                current.setExplored();
+                if (current.isTarget)
+                    return resolve();
+                for (const { node: neighbor, cost: costFromCurrentToNeighbor, } of Object.values(this.graph.get(current.id).neighbors)) {
+                    const newCostFromSourceToNeighbor = this.costFromSourceTo[current.id] +
+                        costFromCurrentToNeighbor;
+                    if (newCostFromSourceToNeighbor <
+                        (this.costFromSourceTo[neighbor.id] ?? Infinity)) {
+                        this.costFromSourceTo[neighbor.id] =
+                            newCostFromSourceToNeighbor;
+                        this.f[neighbor.id] =
+                            this.costFromSourceTo[neighbor.id] +
+                                this.getHuristicCostToTarget(neighbor);
+                        this.cameFrom[neighbor.id] = current;
+                        this.unsolvedHeap.push([neighbor, this.f[neighbor.id]]);
+                    }
+                }
+            }
+            if (this.unsolvedHeap.size > 0) {
+                return setTimeout(() => resolve(this.execute()), this.delayMs);
+            }
+            return resolve();
+        });
+    }
+    getHuristicCostToTarget(fromCell) {
+        if (!(fromCell.id in this.huristicCostToTarget)) {
+            const { row: row1, col: col1 } = fromCell.position;
+            const { row: row2, col: col2 } = this.target.position;
+            this.huristicCostToTarget[fromCell.id] =
+                ((row1 - row2) ** 2 + (col1 - col2) ** 2) ** 0.5;
+        }
+        return this.huristicCostToTarget[fromCell.id];
     }
 }
 AStar.algorithmName = "A*";
