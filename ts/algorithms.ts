@@ -65,7 +65,7 @@ export abstract class PathFindingAlgorithm {
             path.push(current);
             current = this.cameFrom[current.id];
         }
-        path.push(this.source);
+        if (current) path.push(current);
         path.reverse();
         if (path.length > 0) this.pathFromSourceTo[toCell.id] = path;
     }
@@ -179,6 +179,14 @@ export class AStar extends PathFindingAlgorithm {
             const { row: row2, col: col2 } = this.target.position;
             this.huristicCostToTarget[fromCell.id] =
                 ((row1 - row2) ** 2 + (col1 - col2) ** 2) ** 0.5;
+
+            // this.huristicCostToTarget[fromCell.id] = Math.max(
+            //     Math.abs(row1 - row2),
+            //     Math.abs(col1 - col2)
+            // );
+
+            // this.huristicCostToTarget[fromCell.id] =
+            //     Math.abs(col1 - col2) + Math.abs(row1 - row2);
         }
         return this.huristicCostToTarget[fromCell.id];
     }

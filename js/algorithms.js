@@ -40,7 +40,8 @@ export class PathFindingAlgorithm {
             path.push(current);
             current = this.cameFrom[current.id];
         }
-        path.push(this.source);
+        if (current)
+            path.push(current);
         path.reverse();
         if (path.length > 0)
             this.pathFromSourceTo[toCell.id] = path;
