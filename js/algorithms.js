@@ -132,7 +132,7 @@ export class AStar extends PathFindingAlgorithm {
 AStar.algorithmName = "A*";
 AStar.explanation = "A* uses a cost function f(n)=g(n)+h(n), where g(n) is the cost to reach node n from the start, and h(n) is the estimated cost from n to the goal. The algorithm prioritizes nodes with the lowest f(n) value, expanding them until the goal is reached.";
 export class BellmanFord extends PathFindingAlgorithm {
-    execute(n = 1) {
+    execute(n = 0) {
         return new Promise((resolve) => {
             if (n >= this.graph.size)
                 return resolve();
@@ -147,7 +147,7 @@ export class BellmanFord extends PathFindingAlgorithm {
                     }
                 }
             }
-            this.graph.get(this.graph.keys[n - 1]).node.setExplored();
+            this.graph.get(this.graph.keys[n]).node.setExplored();
             return setTimeout(() => resolve(this.execute(n + 1)), this.delayMs);
         });
     }

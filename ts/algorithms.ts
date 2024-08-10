@@ -200,7 +200,7 @@ export class BellmanFord extends PathFindingAlgorithm {
     public static override algorithmName = "Bellman-Ford";
     public static override explanation =
         "The Bellman-Ford algorithm finds the shortest paths from a source vertex to all other vertices by relaxing all edges up to (V-1) times. It then checks for negative weight cycles by attempting one more relaxation. If any distances are updated, a negative cycle exists.";
-    public execute(n: number = 1): Promise<void> {
+    public execute(n: number = 0): Promise<void> {
         return new Promise((resolve) => {
             if (n >= this.graph.size) return resolve();
             for (const key of this.graph.keys) {
@@ -220,7 +220,7 @@ export class BellmanFord extends PathFindingAlgorithm {
                     }
                 }
             }
-            this.graph.get(this.graph.keys[n - 1]).node.setExplored();
+            this.graph.get(this.graph.keys[n]).node.setExplored();
             return setTimeout(() => resolve(this.execute(n + 1)), this.delayMs);
         });
     }
