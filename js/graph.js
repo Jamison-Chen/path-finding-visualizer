@@ -51,6 +51,9 @@ export default class Graph {
     get keys() {
         return Object.keys(this.graph);
     }
+    get size() {
+        return this.keys.length;
+    }
     getNeighborCost(n1, n2) {
         if (n1.id === n2.id)
             return 0;

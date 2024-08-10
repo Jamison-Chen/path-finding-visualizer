@@ -1,4 +1,9 @@
-import { AStar, Dijkstra, PathFindingAlgorithm } from "./algorithms.js";
+import {
+    AStar,
+    BellmanFord,
+    Dijkstra,
+    PathFindingAlgorithm,
+} from "./algorithms.js";
 import Cell from "./cell.js";
 import Maze from "./maze.js";
 import { throttle } from "./utils.js";
@@ -9,7 +14,7 @@ type CellSizeOption = (typeof cellSizeOptions)[number];
 const speedOptions = ["slow", "normal", "fast"] as const;
 type SpeedOption = (typeof speedOptions)[number];
 
-const algorithmOptions = [Dijkstra, AStar] as const;
+const algorithmOptions = [Dijkstra, AStar, BellmanFord] as const;
 type AlgorithmOption = (typeof algorithmOptions)[number];
 
 const cleanModeOptions = ["retain-the-wall", "clean-all"] as const;
@@ -431,7 +436,7 @@ class Main {
                 "click",
                 this.onClickPrevAlgoButton
             );
-        } else if (this.choosedAlgorithmIndex === 1) {
+        } else {
             this.domPrevAlgoButton.classList.remove("disabled");
             this.domPrevAlgoButton.addEventListener(
                 "click",
@@ -444,7 +449,7 @@ class Main {
                 "click",
                 this.onClickNextAlgoButton
             );
-        } else if (this.choosedAlgorithmIndex === algorithmOptions.length - 2) {
+        } else {
             this.domNextAlgoButton.classList.remove("disabled");
             this.domNextAlgoButton.addEventListener(
                 "click",

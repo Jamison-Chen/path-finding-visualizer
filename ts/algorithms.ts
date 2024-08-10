@@ -10,7 +10,7 @@ export abstract class PathFindingAlgorithm {
     protected graph: Graph<Cell>;
     protected cameFrom: { [id: string]: Cell };
     protected costFromSourceTo: { [id: string]: number };
-    private pathFromSourceTo: { [id: string]: Cell[] };
+    protected pathFromSourceTo: { [id: string]: Cell[] };
     protected delayMs: number;
     public constructor(
         source: Cell,
@@ -177,17 +177,51 @@ export class AStar extends PathFindingAlgorithm {
         if (!(fromCell.id in this.huristicCostToTarget)) {
             const { row: row1, col: col1 } = fromCell.position;
             const { row: row2, col: col2 } = this.target.position;
+
+            // Euclidean distance
             this.huristicCostToTarget[fromCell.id] =
                 ((row1 - row2) ** 2 + (col1 - col2) ** 2) ** 0.5;
 
+            //// Chebyshev distance
             // this.huristicCostToTarget[fromCell.id] = Math.max(
             //     Math.abs(row1 - row2),
             //     Math.abs(col1 - col2)
             // );
 
+            //// Manhattan distance
             // this.huristicCostToTarget[fromCell.id] =
             //     Math.abs(col1 - col2) + Math.abs(row1 - row2);
         }
         return this.huristicCostToTarget[fromCell.id];
+    }
+}
+
+export class BellmanFord extends PathFindingAlgorithm {
+    public static override algorithmName = "Bellman-Ford";
+    public static override explanation =
+        "The Bellman-Ford algorithm finds the shortest paths from a source vertex to all other vertices by relaxing all edges up to (V-1) times. It then checks for negative weight cycles by attempting one more relaxation. If any distances are updated, a negative cycle exists.";
+    public execute(n: number = 1): Promise<void> {
+        return new Promise((resolve) => {
+            if (n >= this.graph.size) return resolve();
+            for (const key of this.graph.keys) {
+                for (const {
+                    node: neighbor,
+                    cost: costFromCurrentToNeighbor,
+                } of Object.values(this.graph.get(key).neighbors)) {
+                    const newCostFromSourceToNeighbor =
+                        this.costFromSourceTo[key] + costFromCurrentToNeighbor;
+                    if (
+                        newCostFromSourceToNeighbor <
+                        (this.costFromSourceTo[neighbor.id] ?? Infinity)
+                    ) {
+                        this.costFromSourceTo[neighbor.id] =
+                            newCostFromSourceToNeighbor;
+                        this.cameFrom[neighbor.id] = this.graph.get(key).node;
+                    }
+                }
+            }
+            this.graph.get(this.graph.keys[n]).node.setExplored();
+            return setTimeout(() => resolve(this.execute(n + 1)), this.delayMs);
+        });
     }
 }

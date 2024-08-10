@@ -93,6 +93,7 @@ body {
                 width: 100px;
                 height: 100%;
                 color: $gray;
+                font-size: 0.85 * $base-font-size;
                 transition-duration: 150ms;
                 @media (hover: hover) {
                     &:hover {

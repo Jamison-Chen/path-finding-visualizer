@@ -64,14 +64,14 @@ export default class Graph<Node extends BaseNode> {
             cost: edge.cost,
         };
     }
-    public get(id: string): {
-        node: Node;
-        neighbors: { [id: string]: { node: Node; cost: number } };
-    } {
+    public get(id: string): (typeof this.graph)[keyof typeof this.graph] {
         return this.graph[id];
     }
     public get keys(): string[] {
         return Object.keys(this.graph);
+    }
+    public get size(): number {
+        return this.keys.length;
     }
     public getNeighborCost(n1: Node, n2: Node): number {
         if (n1.id === n2.id) return 0;
