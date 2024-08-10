@@ -147,7 +147,7 @@ export class BellmanFord extends PathFindingAlgorithm {
                     }
                 }
             }
-            this.graph.get(this.graph.keys[n]).node.setExplored();
+            this.graph.get(this.graph.keys[n - 1]).node.setExplored();
             return setTimeout(() => resolve(this.execute(n + 1)), this.delayMs);
         });
     }
