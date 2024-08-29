@@ -51,18 +51,21 @@ export class Dijkstra extends PathFindingAlgorithm {
     constructor(source, target, grid, delayMs = 0) {
         super(source, target, grid, delayMs);
         this.unsolvedHeap = new MinHeap([[source, 0]], (e) => e[1]);
+        this.visited = new Set();
     }
     execute() {
         return new Promise((resolve) => {
             if (this.unsolvedHeap.size > 0) {
                 const [current, costFromSourceToCurrent] = this.unsolvedHeap.pop();
                 current.setExplored();
+                this.visited.add(current);
                 if (current.isTarget)
                     return resolve();
                 for (const { node: neighbor, cost: costFromCurrentToNeighbor, } of Object.values(this.graph.get(current.id).neighbors)) {
                     const newCostFromSourceToNeighbor = costFromSourceToCurrent + costFromCurrentToNeighbor;
-                    if (newCostFromSourceToNeighbor <
-                        (this.costFromSourceTo[neighbor.id] ?? Infinity)) {
+                    if (!this.visited.has(neighbor) &&
+                        newCostFromSourceToNeighbor <
+                            (this.costFromSourceTo[neighbor.id] ?? Infinity)) {
                         this.costFromSourceTo[neighbor.id] =
                             newCostFromSourceToNeighbor;
                         this.cameFrom[neighbor.id] = current;
@@ -90,19 +93,22 @@ export class AStar extends PathFindingAlgorithm {
             this.getHuristicCostToTarget(source);
         this.f = structuredClone(this.huristicCostToTarget);
         this.unsolvedHeap = new MinHeap([[source, 0]], (e) => e[1]);
+        this.visited = new Set();
     }
     execute() {
         return new Promise((resolve) => {
             if (this.unsolvedHeap.size > 0) {
                 const current = this.unsolvedHeap.pop()[0];
                 current.setExplored();
+                this.visited.add(current);
                 if (current.isTarget)
                     return resolve();
                 for (const { node: neighbor, cost: costFromCurrentToNeighbor, } of Object.values(this.graph.get(current.id).neighbors)) {
                     const newCostFromSourceToNeighbor = this.costFromSourceTo[current.id] +
                         costFromCurrentToNeighbor;
-                    if (newCostFromSourceToNeighbor <
-                        (this.costFromSourceTo[neighbor.id] ?? Infinity)) {
+                    if (!this.visited.has(neighbor) &&
+                        newCostFromSourceToNeighbor <
+                            (this.costFromSourceTo[neighbor.id] ?? Infinity)) {
                         this.costFromSourceTo[neighbor.id] =
                             newCostFromSourceToNeighbor;
                         this.f[neighbor.id] =

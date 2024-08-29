@@ -76,6 +76,7 @@ export class Dijkstra extends PathFindingAlgorithm {
     public static override explanation =
         "Dijkstra algorithm works by initializing the starting node's distance to zero and all other nodes to infinity. Then, it repeatedly selects the unvisited node with the smallest known distance, updates the distances of its neighbors, and marks it as visited. This process continues until all nodes are visited or the shortest path to the target node is found.";
     private unsolvedHeap: MinHeap<[Cell, number]>;
+    private visited: Set<Cell>;
     public constructor(
         source: Cell,
         target: Cell,
@@ -84,6 +85,7 @@ export class Dijkstra extends PathFindingAlgorithm {
     ) {
         super(source, target, grid, delayMs);
         this.unsolvedHeap = new MinHeap([[source, 0]], (e) => e[1] as number);
+        this.visited = new Set();
     }
     public execute(): Promise<void> {
         return new Promise((resolve) => {
@@ -91,6 +93,7 @@ export class Dijkstra extends PathFindingAlgorithm {
                 const [current, costFromSourceToCurrent] =
                     this.unsolvedHeap.pop();
                 current.setExplored();
+                this.visited.add(current);
                 if (current.isTarget) return resolve();
                 for (const {
                     node: neighbor,
@@ -99,8 +102,9 @@ export class Dijkstra extends PathFindingAlgorithm {
                     const newCostFromSourceToNeighbor =
                         costFromSourceToCurrent + costFromCurrentToNeighbor;
                     if (
+                        !this.visited.has(neighbor) &&
                         newCostFromSourceToNeighbor <
-                        (this.costFromSourceTo[neighbor.id] ?? Infinity)
+                            (this.costFromSourceTo[neighbor.id] ?? Infinity)
                     ) {
                         this.costFromSourceTo[neighbor.id] =
                             newCostFromSourceToNeighbor;
@@ -127,6 +131,7 @@ export class AStar extends PathFindingAlgorithm {
     private huristicCostToTarget: { [id: string]: number };
     private f: { [id: string]: number };
     private unsolvedHeap: MinHeap<[Cell, number]>;
+    private visited: Set<Cell>;
     public constructor(
         source: Cell,
         target: Cell,
@@ -139,12 +144,14 @@ export class AStar extends PathFindingAlgorithm {
             this.getHuristicCostToTarget(source);
         this.f = structuredClone(this.huristicCostToTarget);
         this.unsolvedHeap = new MinHeap([[source, 0]], (e) => e[1] as number);
+        this.visited = new Set();
     }
     public execute(): Promise<void> {
         return new Promise((resolve) => {
             if (this.unsolvedHeap.size > 0) {
                 const current = this.unsolvedHeap.pop()[0];
                 current.setExplored();
+                this.visited.add(current);
                 if (current.isTarget) return resolve();
                 for (const {
                     node: neighbor,
@@ -154,8 +161,9 @@ export class AStar extends PathFindingAlgorithm {
                         this.costFromSourceTo[current.id] +
                         costFromCurrentToNeighbor;
                     if (
+                        !this.visited.has(neighbor) &&
                         newCostFromSourceToNeighbor <
-                        (this.costFromSourceTo[neighbor.id] ?? Infinity)
+                            (this.costFromSourceTo[neighbor.id] ?? Infinity)
                     ) {
                         this.costFromSourceTo[neighbor.id] =
                             newCostFromSourceToNeighbor;
