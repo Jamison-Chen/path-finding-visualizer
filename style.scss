@@ -10,7 +10,8 @@ $green: #1aa260;
 $blue: #4c8bf5;
 $yellow: #fbbc05;
 $transparent-black: #00000009;
-$semi-transparent-black: #0007;
+$transparent-black-2: #0001;
+$transparent-black-3: #0007;
 $transparent-blue: #4c8bf520;
 $transparent-white: #ffffff90;
 $small-screen-boundary: 512px;
@@ -264,6 +265,7 @@ body {
                     flex-direction: column;
                     align-items: center;
                     margin: 0;
+                    overflow: hidden;
                     &.active {
                         display: flex;
                     }
@@ -286,6 +288,34 @@ body {
                     & > .button-container {
                         display: flex;
                         gap: 3px;
+                    }
+                }
+            }
+            &.logo-and-copyright {
+                width: min(90%, 350px);
+                & > .body {
+                    display: flex;
+                    flex-direction: column;
+                    align-items: center;
+                    gap: 15px;
+                    padding-top: 20px;
+                    & > .name-and-logo {
+                        display: flex;
+                        flex-direction: column;
+                        align-items: center;
+                        gap: 10px;
+                        & > .logo {
+                            height: 60px;
+                            object-fit: contain;
+                        }
+                        & > .text {
+                            font-size: 1.5 * $base-font-size;
+                            font-family: cursive;
+                        }
+                    }
+                    & > .copyright {
+                        font-size: 0.8 * $base-font-size;
+                        color: $gray;
                     }
                 }
             }
@@ -408,6 +438,11 @@ body {
                     background-color: $transparent-black;
                 }
             }
+            &:active {
+                &::after {
+                    background-color: $transparent-black-2;
+                }
+            }
         }
     }
     &.disabled {
@@ -434,7 +469,7 @@ body {
         display: none;
         padding: 6px 8px;
         border-radius: 5px;
-        background-color: $semi-transparent-black;
+        background-color: $transparent-black-3;
         color: $white;
         font-size: 0.7 * $base-font-size;
         white-space: nowrap;

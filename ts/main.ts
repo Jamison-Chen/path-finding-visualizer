@@ -21,6 +21,9 @@ const cleanModeOptions = ["retain-the-wall", "clean-all"] as const;
 type CleanMode = (typeof cleanModeOptions)[number];
 
 class Main {
+    private domLogoAndName = document.querySelector(
+        "body > .control-panel > .left"
+    )!;
     private domPrevAlgoButton = document.querySelector(
         "body > .control-panel > .mid > .prev"
     )!;
@@ -47,6 +50,9 @@ class Main {
     private domModalTutorialMain = document.querySelector(
         "body > .modal > .main.tutorial"
     )!;
+    private domModalLogoAndCopyrightMain = document.querySelector(
+        "body > .modal > .main.logo-and-copyright"
+    )!;
     private domModalExplainAlgoMain = document.querySelector(
         "body > .modal > .main.explain-algorithm"
     )!;
@@ -61,6 +67,8 @@ class Main {
     private choosedAlgorithmIndex: number;
     private cellSize: CellSizeOption;
     private speed: SpeedOption;
+    private toChooseCellSize: CellSizeOption;
+    private toChooseSpeed: SpeedOption;
     private cleanMode: CleanMode;
     private isMousePressedOnCell: boolean;
     private isMovingSource: boolean;
@@ -75,6 +83,8 @@ class Main {
         this.choosedAlgorithmIndex = 0;
         this.cellSize = "l";
         this.speed = "fast";
+        this.toChooseCellSize = "l";
+        this.toChooseSpeed = "fast";
         this.cleanMode = "retain-the-wall";
         this.isMousePressedOnCell = false;
         this.isMovingSource = false;
@@ -83,21 +93,120 @@ class Main {
         this.source = new Cell(0, 0, 0);
         this.target = new Cell(0, 0, 0);
         this.initCanvas();
+
+        this.domLogoAndName.addEventListener("click", () => {
+            this.domModal.classList.add("active");
+            this.domModalLogoAndCopyrightMain.classList.add("active");
+        });
+        this.domModalLogoAndCopyrightMain
+            .querySelector(".footer > .button.confirm")!
+            .addEventListener("click", () => {
+                this.domModal.classList.remove("active");
+                this.domModalLogoAndCopyrightMain.classList.remove("active");
+            });
+
         this.onChangeAlgorithm();
-        this.domAlgorithmText.addEventListener("click", this.onClickAlgorithm);
+
+        this.domAlgorithmText.addEventListener("click", () => {
+            this.domModal.classList.add("active");
+            this.domModalExplainAlgoMain.classList.add("active");
+            this.domModalExplainAlgoMain.querySelector(".body")!.textContent =
+                this.algorithmClass.explanation;
+        });
+        this.domModalExplainAlgoMain
+            .querySelector(".footer > .button.confirm")!
+            .addEventListener("click", () => {
+                this.domModal.classList.remove("active");
+                this.domModalExplainAlgoMain.classList.remove("active");
+            });
+
         this.domVisualizeButton.addEventListener(
             "click",
             this.onClickVisualizeButton
         );
+
         this.domCleanButton.addEventListener("click", this.onClickCleanButton);
+        const modalCleanOptionsLeft =
+            this.domModalCleanOptionsMain.querySelector(".body > .left")!;
+        const modalCleanOptionsLeftOption: HTMLInputElement =
+            modalCleanOptionsLeft.querySelector(".option-container > input")!;
+        const modalCleanOptionsRight =
+            this.domModalCleanOptionsMain.querySelector(".body > .right")!;
+        const modalCleanOptionsRightOption: HTMLInputElement =
+            modalCleanOptionsRight.querySelector(".option-container > input")!;
+        modalCleanOptionsLeft.addEventListener("click", () => {
+            this.cleanMode = "retain-the-wall";
+            modalCleanOptionsLeftOption.checked = true;
+            modalCleanOptionsRightOption.checked = false;
+        });
+        modalCleanOptionsRight.addEventListener("click", () => {
+            this.cleanMode = "clean-all";
+            modalCleanOptionsRightOption.checked = true;
+            modalCleanOptionsLeftOption.checked = false;
+        });
+        this.domModalCleanOptionsMain
+            .querySelector(".footer > .button.discard")!
+            .addEventListener("click", () => {
+                this.domModal.classList.remove("active");
+                this.domModalCleanOptionsMain.classList.remove("active");
+            });
+        this.domModalCleanOptionsMain
+            .querySelector(".footer > .button.confirm-fill")!
+            .addEventListener("click", () => {
+                if (this.cleanMode === "retain-the-wall") {
+                    this.cleanExploreResult();
+                } else this.cleanAll();
+                this.domModal.classList.remove("active");
+                this.domModalCleanOptionsMain.classList.remove("active");
+            });
+
         this.domGenMazeButton.addEventListener(
             "click",
             this.onClickGenMazeButton
         );
+
         this.domSettingsButton.addEventListener(
             "click",
             this.onClickSettingsButton
         );
+        const domCellSizeOptionContainers: NodeListOf<HTMLElement> =
+            this.domModalSettingsMain.querySelectorAll(
+                ".body > .row.cell-size > .options > .option-container"
+            )!;
+        for (const dom of domCellSizeOptionContainers) {
+            const domInput: HTMLInputElement = dom.querySelector("input")!;
+            dom.addEventListener("click", () => {
+                this.toChooseCellSize = domInput.value as CellSizeOption;
+                domInput.checked = true;
+            });
+        }
+        const domSpeedOptionContainers: NodeListOf<HTMLElement> =
+            this.domModalSettingsMain.querySelectorAll(
+                ".body > .row.speed > .options > .option-container"
+            )!;
+        for (const dom of domSpeedOptionContainers) {
+            const domInput: HTMLInputElement = dom.querySelector("input")!;
+            dom.addEventListener("click", () => {
+                this.toChooseSpeed = domInput.value as SpeedOption;
+                domInput.checked = true;
+            });
+        }
+        this.domModalSettingsMain
+            .querySelector(".footer > .button.discard")!
+            .addEventListener("click", () => {
+                this.domModal.classList.remove("active");
+                this.domModalSettingsMain.classList.remove("active");
+            });
+        this.domModalSettingsMain
+            .querySelector(".footer > .button.confirm-fill")!
+            .addEventListener("click", () => {
+                this.cellSize = this.toChooseCellSize;
+                this.speed = this.toChooseSpeed;
+                this.domModal.classList.remove("active");
+                this.domModalSettingsMain.classList.remove("active");
+                this.initCanvas();
+            });
+
         document.addEventListener("mouseup", this.onMouseUp);
         window.addEventListener(
             "resize",
@@ -198,18 +307,6 @@ class Main {
         this.onChangeAlgorithm();
         this.cleanExploreResult();
     };
-    private onClickAlgorithm = (): void => {
-        this.domModal.classList.add("active");
-        this.domModalExplainAlgoMain.classList.add("active");
-        this.domModalExplainAlgoMain.querySelector(".body")!.textContent =
-            this.algorithmClass.explanation;
-        this.domModalExplainAlgoMain
-            .querySelector(".footer > .button.confirm-fill")!
-            .addEventListener("click", () => {
-                this.domModal.classList.remove("active");
-                this.domModalExplainAlgoMain.classList.remove("active");
-            });
-    };
     private onClickVisualizeButton = async (): Promise<void> => {
         this.cleanExploreResult();
 
@@ -307,43 +404,23 @@ class Main {
     private onClickCleanButton = (): void => {
         this.domModal.classList.add("active");
         this.domModalCleanOptionsMain.classList.add("active");
-        const left =
-            this.domModalCleanOptionsMain.querySelector(".body > .left")!;
-        const leftOption: HTMLInputElement = left.querySelector(
-            ".option-container > input"
-        )!;
-        const right =
-            this.domModalCleanOptionsMain.querySelector(".body > .right")!;
-        const rightOption: HTMLInputElement = right.querySelector(
-            ".option-container > input"
-        )!;
-        left.addEventListener("click", () => {
-            this.cleanMode = "retain-the-wall";
-            leftOption.checked = true;
-            rightOption.checked = false;
-        });
-        right.addEventListener("click", () => {
-            this.cleanMode = "clean-all";
-            rightOption.checked = true;
-            leftOption.checked = false;
-        });
-        if (this.cleanMode === "retain-the-wall") leftOption.checked = true;
-        else rightOption.checked = true;
-        this.domModalCleanOptionsMain
-            .querySelector(".footer > .button.discard")!
-            .addEventListener("click", () => {
-                this.domModal.classList.remove("active");
-                this.domModalCleanOptionsMain.classList.remove("active");
-            });
-        this.domModalCleanOptionsMain
-            .querySelector(".footer > .button.confirm-fill")!
-            .addEventListener("click", () => {
-                if (this.cleanMode === "retain-the-wall") {
-                    this.cleanExploreResult();
-                } else this.cleanAll();
-                this.domModal.classList.remove("active");
-                this.domModalCleanOptionsMain.classList.remove("active");
-            });
+        if (this.cleanMode === "retain-the-wall") {
+            (
+                this.domModalCleanOptionsMain
+                    .querySelector(".body > .left")!
+                    .querySelector(
+                        ".option-container > input"
+                    ) as HTMLInputElement
+            ).checked = true;
+        } else {
+            (
+                this.domModalCleanOptionsMain
+                    .querySelector(".body > .right")!
+                    .querySelector(
+                        ".option-container > input"
+                    ) as HTMLInputElement
+            ).checked = true;
+        }
     };
     private onClickGenMazeButton = (): void => {
         this.cleanAll();
@@ -352,8 +429,8 @@ class Main {
     private onClickSettingsButton = (): void => {
         this.domModal.classList.add("active");
         this.domModalSettingsMain.classList.add("active");
-        let newCellSize = this.cellSize;
-        let newSpeed = this.speed;
+        this.toChooseCellSize = this.cellSize;
+        this.toChooseSpeed = this.speed;
         const domCellSizeOptionContainers: NodeListOf<HTMLElement> =
             this.domModalSettingsMain.querySelectorAll(
                 ".body > .row.cell-size > .options > .option-container"
@@ -361,10 +438,6 @@ class Main {
         for (const dom of domCellSizeOptionContainers) {
             const domInput: HTMLInputElement = dom.querySelector("input")!;
             if (this.cellSize === domInput.value) domInput.checked = true;
-            dom.addEventListener("click", () => {
-                newCellSize = domInput.value as CellSizeOption;
-                domInput.checked = true;
-            });
         }
         const domSpeedOptionContainers: NodeListOf<HTMLElement> =
             this.domModalSettingsMain.querySelectorAll(
@@ -373,26 +446,7 @@ class Main {
         for (const dom of domSpeedOptionContainers) {
             const domInput: HTMLInputElement = dom.querySelector("input")!;
             if (this.speed === domInput.value) domInput.checked = true;
-            dom.addEventListener("click", () => {
-                newSpeed = domInput.value as SpeedOption;
-                domInput.checked = true;
-            });
         }
-        this.domModalSettingsMain
-            .querySelector(".footer > .button.discard")!
-            .addEventListener("click", () => {
-                this.domModal.classList.remove("active");
-                this.domModalSettingsMain.classList.remove("active");
-            });
-        this.domModalSettingsMain
-            .querySelector(".footer > .button.confirm-fill")!
-            .addEventListener("click", () => {
-                this.cellSize = newCellSize;
-                this.speed = newSpeed;
-                this.domModal.classList.remove("active");
-                this.domModalSettingsMain.classList.remove("active");
-                this.initCanvas();
-            });
     };
     private onMouseDownOnCell = (cell: Cell): EventListener => {
         return (): void => {

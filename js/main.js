@@ -8,6 +8,7 @@ const algorithmOptions = [Dijkstra, AStar, BellmanFord];
 const cleanModeOptions = ["retain-the-wall", "clean-all"];
 class Main {
     constructor() {
+        this.domLogoAndName = document.querySelector("body > .control-panel > .left");
         this.domPrevAlgoButton = document.querySelector("body > .control-panel > .mid > .prev");
         this.domNextAlgoButton = document.querySelector("body > .control-panel > .mid > .next");
         this.domAlgorithmText = document.querySelector("body > .control-panel > .mid > .algorithm");
@@ -18,6 +19,7 @@ class Main {
         this.domCanvas = document.querySelector("body > .canvas");
         this.domModal = document.querySelector("body > .modal");
         this.domModalTutorialMain = document.querySelector("body > .modal > .main.tutorial");
+        this.domModalLogoAndCopyrightMain = document.querySelector("body > .modal > .main.logo-and-copyright");
         this.domModalExplainAlgoMain = document.querySelector("body > .modal > .main.explain-algorithm");
         this.domModalCleanOptionsMain = document.querySelector("body > .modal > .main.clean-options");
         this.domModalSettingsMain = document.querySelector("body > .modal > .main.settings");
@@ -59,18 +61,6 @@ class Main {
             this.choosedAlgorithmIndex++;
             this.onChangeAlgorithm();
             this.cleanExploreResult();
-        };
-        this.onClickAlgorithm = () => {
-            this.domModal.classList.add("active");
-            this.domModalExplainAlgoMain.classList.add("active");
-            this.domModalExplainAlgoMain.querySelector(".body").textContent =
-                this.algorithmClass.explanation;
-            this.domModalExplainAlgoMain
-                .querySelector(".footer > .button.confirm-fill")
-                .addEventListener("click", () => {
-                this.domModal.classList.remove("active");
-                this.domModalExplainAlgoMain.classList.remove("active");
-            });
         };
         this.onClickVisualizeButton = async () => {
             this.cleanExploreResult();
@@ -126,41 +116,16 @@ class Main {
         this.onClickCleanButton = () => {
             this.domModal.classList.add("active");
             this.domModalCleanOptionsMain.classList.add("active");
-            const left = this.domModalCleanOptionsMain.querySelector(".body > .left");
-            const leftOption = left.querySelector(".option-container > input");
-            const right = this.domModalCleanOptionsMain.querySelector(".body > .right");
-            const rightOption = right.querySelector(".option-container > input");
-            left.addEventListener("click", () => {
-                this.cleanMode = "retain-the-wall";
-                leftOption.checked = true;
-                rightOption.checked = false;
-            });
-            right.addEventListener("click", () => {
-                this.cleanMode = "clean-all";
-                rightOption.checked = true;
-                leftOption.checked = false;
-            });
-            if (this.cleanMode === "retain-the-wall")
-                leftOption.checked = true;
-            else
-                rightOption.checked = true;
-            this.domModalCleanOptionsMain
-                .querySelector(".footer > .button.discard")
-                .addEventListener("click", () => {
-                this.domModal.classList.remove("active");
-                this.domModalCleanOptionsMain.classList.remove("active");
-            });
-            this.domModalCleanOptionsMain
-                .querySelector(".footer > .button.confirm-fill")
-                .addEventListener("click", () => {
-                if (this.cleanMode === "retain-the-wall") {
-                    this.cleanExploreResult();
-                }
-                else
-                    this.cleanAll();
-                this.domModal.classList.remove("active");
-                this.domModalCleanOptionsMain.classList.remove("active");
-            });
+            if (this.cleanMode === "retain-the-wall") {
+                this.domModalCleanOptionsMain
+                    .querySelector(".body > .left")
+                    .querySelector(".option-container > input").checked = true;
+            }
+            else {
+                this.domModalCleanOptionsMain
+                    .querySelector(".body > .right")
+                    .querySelector(".option-container > input").checked = true;
+            }
         };
         this.onClickGenMazeButton = () => {
             this.cleanAll();
@@ -169,43 +134,20 @@ class Main {
         this.onClickSettingsButton = () => {
             this.domModal.classList.add("active");
             this.domModalSettingsMain.classList.add("active");
-            let newCellSize = this.cellSize;
-            let newSpeed = this.speed;
+            this.toChooseCellSize = this.cellSize;
+            this.toChooseSpeed = this.speed;
             const domCellSizeOptionContainers = this.domModalSettingsMain.querySelectorAll(".body > .row.cell-size > .options > .option-container");
             for (const dom of domCellSizeOptionContainers) {
                 const domInput = dom.querySelector("input");
                 if (this.cellSize === domInput.value)
                     domInput.checked = true;
-                dom.addEventListener("click", () => {
-                    newCellSize = domInput.value;
-                    domInput.checked = true;
-                });
             }
             const domSpeedOptionContainers = this.domModalSettingsMain.querySelectorAll(".body > .row.speed > .options > .option-container");
             for (const dom of domSpeedOptionContainers) {
                 const domInput = dom.querySelector("input");
                 if (this.speed === domInput.value)
                     domInput.checked = true;
-                dom.addEventListener("click", () => {
-                    newSpeed = domInput.value;
-                    domInput.checked = true;
-                });
             }
-            this.domModalSettingsMain
-                .querySelector(".footer > .button.discard")
-                .addEventListener("click", () => {
-                this.domModal.classList.remove("active");
-                this.domModalSettingsMain.classList.remove("active");
-            });
-            this.domModalSettingsMain
-                .querySelector(".footer > .button.confirm-fill")
-                .addEventListener("click", () => {
-                this.cellSize = newCellSize;
-                this.speed = newSpeed;
-                this.domModal.classList.remove("active");
-                this.domModalSettingsMain.classList.remove("active");
-                this.initCanvas();
-            });
         };
         this.onMouseDownOnCell = (cell) => {
             return () => {
@@ -250,6 +192,8 @@ class Main {
         this.choosedAlgorithmIndex = 0;
         this.cellSize = "l";
         this.speed = "fast";
+        this.toChooseCellSize = "l";
+        this.toChooseSpeed = "fast";
         this.cleanMode = "retain-the-wall";
         this.isMousePressedOnCell = false;
         this.isMovingSource = false;
@@ -258,12 +202,95 @@ class Main {
         this.source = new Cell(0, 0, 0);
         this.target = new Cell(0, 0, 0);
         this.initCanvas();
+        this.domLogoAndName.addEventListener("click", () => {
+            this.domModal.classList.add("active");
+            this.domModalLogoAndCopyrightMain.classList.add("active");
+        });
+        this.domModalLogoAndCopyrightMain
+            .querySelector(".footer > .button.confirm")
+            .addEventListener("click", () => {
+            this.domModal.classList.remove("active");
+            this.domModalLogoAndCopyrightMain.classList.remove("active");
+        });
         this.onChangeAlgorithm();
-        this.domAlgorithmText.addEventListener("click", this.onClickAlgorithm);
+        this.domAlgorithmText.addEventListener("click", () => {
+            this.domModal.classList.add("active");
+            this.domModalExplainAlgoMain.classList.add("active");
+            this.domModalExplainAlgoMain.querySelector(".body").textContent =
+                this.algorithmClass.explanation;
+        });
+        this.domModalExplainAlgoMain
+            .querySelector(".footer > .button.confirm")
+            .addEventListener("click", () => {
+            this.domModal.classList.remove("active");
+            this.domModalExplainAlgoMain.classList.remove("active");
+        });
         this.domVisualizeButton.addEventListener("click", this.onClickVisualizeButton);
         this.domCleanButton.addEventListener("click", this.onClickCleanButton);
+        const modalCleanOptionsLeft = this.domModalCleanOptionsMain.querySelector(".body > .left");
+        const modalCleanOptionsLeftOption = modalCleanOptionsLeft.querySelector(".option-container > input");
+        const modalCleanOptionsRight = this.domModalCleanOptionsMain.querySelector(".body > .right");
+        const modalCleanOptionsRightOption = modalCleanOptionsRight.querySelector(".option-container > input");
+        modalCleanOptionsLeft.addEventListener("click", () => {
+            this.cleanMode = "retain-the-wall";
+            modalCleanOptionsLeftOption.checked = true;
+            modalCleanOptionsRightOption.checked = false;
+        });
+        modalCleanOptionsRight.addEventListener("click", () => {
+            this.cleanMode = "clean-all";
+            modalCleanOptionsRightOption.checked = true;
+            modalCleanOptionsLeftOption.checked = false;
+        });
+        this.domModalCleanOptionsMain
+            .querySelector(".footer > .button.discard")
+            .addEventListener("click", () => {
+            this.domModal.classList.remove("active");
+            this.domModalCleanOptionsMain.classList.remove("active");
+        });
+        this.domModalCleanOptionsMain
+            .querySelector(".footer > .button.confirm-fill")
+            .addEventListener("click", () => {
+            if (this.cleanMode === "retain-the-wall") {
+                this.cleanExploreResult();
+            }
+            else
+                this.cleanAll();
+            this.domModal.classList.remove("active");
+            this.domModalCleanOptionsMain.classList.remove("active");
+        });
         this.domGenMazeButton.addEventListener("click", this.onClickGenMazeButton);
         this.domSettingsButton.addEventListener("click", this.onClickSettingsButton);
+        const domCellSizeOptionContainers = this.domModalSettingsMain.querySelectorAll(".body > .row.cell-size > .options > .option-container");
+        for (const dom of domCellSizeOptionContainers) {
+            const domInput = dom.querySelector("input");
+            dom.addEventListener("click", () => {
+                this.toChooseCellSize = domInput.value;
+                domInput.checked = true;
+            });
+        }
+        const domSpeedOptionContainers = this.domModalSettingsMain.querySelectorAll(".body > .row.speed > .options > .option-container");
+        for (const dom of domSpeedOptionContainers) {
+            const domInput = dom.querySelector("input");
+            dom.addEventListener("click", () => {
+                this.toChooseSpeed = domInput.value;
+                domInput.checked = true;
+            });
+        }
+        this.domModalSettingsMain
+            .querySelector(".footer > .button.discard")
+            .addEventListener("click", () => {
+            this.domModal.classList.remove("active");
+            this.domModalSettingsMain.classList.remove("active");
+        });
+        this.domModalSettingsMain
+            .querySelector(".footer > .button.confirm-fill")
+            .addEventListener("click", () => {
+            this.cellSize = this.toChooseCellSize;
+            this.speed = this.toChooseSpeed;
+            this.domModal.classList.remove("active");
+            this.domModalSettingsMain.classList.remove("active");
+            this.initCanvas();
+        });
         document.addEventListener("mouseup", this.onMouseUp);
         window.addEventListener("resize", throttle(() => window.location.reload(), 100));
         if (!window.localStorage.getItem(this.tutorialLocalStorageKey)) {
