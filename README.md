@@ -1,20 +1,20 @@
-# Path Finding Visulaize
+# Path Finding Visualizer
 
 ## Developer's Note
 
-### Install Packages
+### Install Dependencies for Development
 
 ```bash
 npm install
 ```
 
-### Build JavaScript for Production
+### Build for Production
 
 ```bash
 npm run build
 ```
 
-### Watch & Build in Real-Time
+### Watch & Build on the Fly
 
 ```bash
 npm run dev
