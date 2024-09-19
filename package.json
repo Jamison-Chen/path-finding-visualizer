@@ -6,7 +6,7 @@
   "scripts": {
     "watch-tsc": "tsc -w",
     "watch-sass": "sass --watch --no-source-map --style=compressed style.scss style.css",
-    "dev": "concurrently 'npm:watch-*' serve 'open http://localhost:3000'",
+    "dev": "concurrently 'npm:watch-*' 'live-server --port=3000'",
     "build": "tsc && sass --no-source-map --style=compressed style.scss style.css"
   },
   "repository": {
@@ -14,16 +14,16 @@
     "url": "git+https://github.com/Jamison-Chen/path-finding-visualizer.git"
   },
   "keywords": [],
-  "author": "Jamison Chen",
+  "author": "Bing-Yang Chen",
   "license": "MIT",
   "bugs": {
     "url": "https://github.com/Jamison-Chen/path-finding-visualizer/issues"
   },
-  "homepage": "https://jamison-chen.github.io/path-finding-visualizer/",
+  "homepage": "https://me.byc1999.com/path-finding-visualizer",
   "devDependencies": {
     "concurrently": "^8.2.2",
+    "live-server": "^1.2.2",
     "sass": "^1.77.6",
-    "serve": "^14.2.3",
     "typescript": "^5.5.2"
   }
 }
