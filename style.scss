@@ -50,6 +50,7 @@ body {
         & > .left {
             display: flex;
             align-items: center;
+            cursor: pointer;
             & > .logo {
                 height: 100%;
                 object-fit: contain;
@@ -313,9 +314,13 @@ body {
                             font-family: cursive;
                         }
                     }
-                    & > .copyright {
-                        font-size: 0.8 * $base-font-size;
-                        color: $gray;
+                    & > .copyright-container {
+                        display: flex;
+                        gap: 15px;
+                        & a {
+                            font-size: 0.8 * $base-font-size;
+                            color: $gray;
+                        }
                     }
                 }
             }
