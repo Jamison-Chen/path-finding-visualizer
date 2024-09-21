@@ -19,7 +19,7 @@
   "bugs": {
     "url": "https://github.com/Jamison-Chen/path-finding-visualizer/issues"
   },
-  "homepage": "https://me.byc1999.com/path-finding-visualizer",
+  "homepage": "https://byc1999.com/path-finding-visualizer",
   "devDependencies": {
     "concurrently": "^8.2.2",
     "live-server": "^1.2.2",
